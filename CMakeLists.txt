@@ -21,6 +21,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Werror --peda
 # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 # Each subdirectory contains a target
-# add_subdirectory(compiler)
+add_subdirectory(compiler)
 add_subdirectory(library)
 add_subdirectory(tests)
