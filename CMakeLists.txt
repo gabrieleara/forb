@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Setting default compiling mode to Release
 # To compile in Debug mode use cmake -DCMAKE_BUILD_TYPE=Debug
 if( NOT CMAKE_BUILD_TYPE )
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+  set(CMAKE_BUILD_TYPE RELEASE CACHE STRING "" FORCE)
     message(STATUS "The CMAKE_BUILD_TYPE variable has been set to the default value")
 endif()
 
