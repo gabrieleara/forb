@@ -14,6 +14,30 @@ namespace forbcc {
 } // namespace forbcc
 
 int main() {
+    forbcc::method m{forbcc::_Int, "sum"};
+
+    forbcc::parameter p1{forbcc::direction::IN, forbcc::_Int, "a"};
+    forbcc::parameter p2{forbcc::direction::IN, forbcc::_Int, "b"};
+
+    m.insert_parameter(p1);
+    m.insert_parameter(p2);
+
+    forbcc::code_ostream output{std::cout};
+
+    forbcc::interface rpc_class{"rpc_class"};
+
+    rpc_class.insert_method(m);
+
+    std::cout << "############ DECLARATION " << std::endl << std::endl;
+
+    rpc_class.generate_declaration(output);
+
+    std::cout << "############ DEFINITION " << std::endl << std::endl;
+
+    rpc_class.generate_definition(output);
+
+
+    /*
     // Openning a new stream controlled by our code formatter
     forbcc::code_ostream output{std::cout};
 
@@ -79,10 +103,11 @@ int main() {
     intmethod.print_declaration(output);
 
     std::cout << "// Stub definition" << std::endl;
-    intmethod.print_stub_definition(output, "prova_class", "VOIDMETHOD");
+    intmethod.print_stub_definition(output, "prova_class");
 
     std::cout << "// Skeleton definition" << std::endl;
     intmethod.print_skeleton_definition(output);
+     */
 
 
 }

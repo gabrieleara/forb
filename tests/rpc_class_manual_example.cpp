@@ -2,14 +2,14 @@
 // Created by gabriele on 02/11/18.
 //
 
-#include <byteswap.h>
-#include <string>
-#include <cstddef>
-#include <memory>
+// #include <byteswap.h>
+// #include <string>
+// #include <cstddef>
+// #include <memory>
 
-// NOTICE: this is used for testing the library before installation, to use the library after installation please use <forb/forb.h>
-#include "forb.hpp"
-
+// NOTICE: this is used for testing the library before installation, to use the library after installation please use
+// #include <forb/forb.hpp>
+#include <forb/forb.hpp> // "forb.hpp"
 #include "rpc_class_manual_example.hpp"
 
 using ssocket = forb::streams::socket;
@@ -21,7 +21,7 @@ using stream = forb::streams::stream;
 /* ***************************** LOCAL_CLASSES ****************************** */
 
 enum class rpc_class_method_codes : forb::call_id_t {
-    SUM_INTS = 1
+    SUM_INTS = 1,
 };
 
 /* ******************************* RPC_CLASS ******************************** */

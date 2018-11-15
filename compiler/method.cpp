@@ -37,8 +37,14 @@ void forbcc::method::print_declaration(forbcc::code_ostream &output) const {
     output << ";" << std::endl;
 }
 
-void forbcc::method::print_stub_definition(forbcc::code_ostream &output, std::string &&scope,
-                                           std::string &&method_id) const {
+void forbcc::method::print_virtual_declaration(forbcc::code_ostream &output) const {
+    output << "virtual ";
+    print_prototype(output, name);
+    output << " = 0;" << std::endl;
+}
+
+void forbcc::method::print_stub_definition(code_ostream &output, const std::string &scope,
+                                           const std::string &enumname) const {
     // First of all, let's print the header of the function
     print_prototype(output, scope + "::" + name);
     output << " {" << std::endl;
@@ -47,7 +53,8 @@ void forbcc::method::print_stub_definition(forbcc::code_ostream &output, std::st
 
     // TODO: add mutexes somewhere
     // This is standard, each call must be initialized
-    output << "this->init_call(forb::call_id_t_cast(" << method_id << "));" << std::endl;
+    // TODO: use also the scoped enum given from outside
+    output << "this->init_call(forb::call_id_t_cast(" << enumname << "::"<< get_id() << "));" << std::endl;
     output << std::endl;
 
     // Then we start to serialize input parameters
@@ -299,4 +306,28 @@ bool forbcc::method::insert_parameter(const forbcc::parameter &param) {
     ++counters[static_cast<int>(param.dir)];
 
     return has_been_inserted;
+}
+
+std::string forbcc::method::get_id() const {
+    std::ostringstream oss{};
+
+    oss << "_F" << name << "E";
+
+    if (parameters.empty()) {
+        oss << "void";
+    } else {
+        for (const auto &it : parameters) {
+            const parameter &param = it.second;
+            oss << param.var.var_type.name.length() << param.var.var_type.name;
+
+            /*
+            if (param.dir != direction::IN)
+                oss << "R";
+             */
+
+            oss << param.var.name.length() << param.var.name;
+        }
+    }
+
+    return oss.str();
 }

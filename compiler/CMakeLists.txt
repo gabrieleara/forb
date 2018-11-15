@@ -11,7 +11,12 @@ add_executable(forbcc
         types/custom_type.cpp
         types/array_type.cpp
         types/module.cpp
-        variable.cpp types/module.cpp include/types/module.hpp parameter.cpp include/parameter.hpp method.cpp include/method.hpp)
+        variable.cpp
+        types/module.cpp
+        parameter.cpp
+        method.cpp
+        interface.cpp
+        )
 
 
 target_include_directories(forbcc

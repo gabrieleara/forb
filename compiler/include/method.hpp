@@ -32,11 +32,15 @@ namespace forbcc {
 
         void print_declaration(code_ostream &) const;
 
-        void print_stub_definition(code_ostream &output, std::string &&scope, std::string &&method_id) const;
+        void print_virtual_declaration(code_ostream &) const;
+
+        void print_stub_definition(code_ostream &output, const std::string &scope, const std::string &enumname) const;
 
         void print_skeleton_definition(code_ostream &output) const;
 
         bool insert_parameter(const parameter &param);
+
+        std::string get_id() const;
 
     private:
         void print_prototype(forbcc::code_ostream &output, const std::string &thename) const;

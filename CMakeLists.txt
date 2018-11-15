@@ -17,7 +17,7 @@ endif()
 message (STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
 # Flags change depending on DEBUG or RELEASE compilation
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Werror --pedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra --pedantic") #-Werror
 # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 # Each subdirectory contains a target

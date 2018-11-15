@@ -14,5 +14,6 @@
 #include "variable.hpp"
 #include "parameter.hpp"
 #include "method.hpp"
+#include "interface.hpp"
 
 #endif //FORB_FORBCC_H

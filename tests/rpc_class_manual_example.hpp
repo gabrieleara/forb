@@ -6,9 +6,8 @@
 #define LIBFORB_RPC_CLASS_EXAMPLE_HPP
 
 #include <string>
-#include <thread>
 
-#include "forb.hpp"
+#include <forb/forb.hpp> // "forb.hpp"
 
 namespace examples {
 
@@ -22,8 +21,6 @@ namespace examples {
     private:
         // Default constructor, no other constructor needed
         rpc_class() = default;
-
-        // TODO: check about the rule of the five
 
     public:
         // Methods as listed in the specification file
