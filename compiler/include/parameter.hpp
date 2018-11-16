@@ -5,12 +5,11 @@
 #ifndef FORBCC_PARAMETER_H
 #define FORBCC_PARAMETER_H
 
-#include <string>
-#include "code_ostream.hpp"
 #include "variable.hpp"
-#include "types/array_type.hpp"
 
 namespace forbcc {
+    class code_ostream;
+
     enum class direction {
         IN, OUT, INOUT
     };
@@ -20,21 +19,20 @@ namespace forbcc {
         const direction dir;
         const variable var;
 
-        parameter(const direction dir, const type &var_type, const std::string name)
+        parameter(const direction dir, const type &var_type, const std::string &name)
                 : dir(dir),
-                  var(nullptr, var_type, name) {};
+                  var(var_type, name) {};
 
-        friend code_ostream &operator<<(code_ostream &output, const parameter &param) {
-            if (param.dir == direction::IN) {
+        /// Prints the declaration, may change if the parameter is IN or OUT/INOUT.
+        void print_declaration(code_ostream &out) const {
+            if (dir == direction::IN) {
                 // Pass by value
-                param.var.print_declaration(output);
+                var.print_declaration(out);
             } else {
                 // Pass by reference
-                param.var.print_reference(output);
+                var.print_reference(out);
             }
-
-            return output;
-        }
+        };
 
 
     };

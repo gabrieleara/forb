@@ -9,9 +9,20 @@ add_executable(rpc_server_manual
         rpc_class_manual_example.cpp
         rpc_server_manual.cpp)
 
+add_executable(rpc_server_gen
+        rpc_server_gen.cpp
+        rpc_class_generated.cpp)
+
+add_executable(rpc_client_gen
+        rpc_client_gen.cpp
+        rpc_class_generated.cpp)
+
 # The two targets of course require the library
 target_link_libraries(rpc_client_manual PRIVATE forb)
 target_link_libraries(rpc_server_manual PRIVATE forb)
+
+target_link_libraries(rpc_client_gen PRIVATE forb)
+target_link_libraries(rpc_server_gen PRIVATE forb)
 
 # The second two targets are basically the same, but with automatically generated classes
 # TODO

@@ -1,51 +1,74 @@
 #include <iostream>
 
-#include "forbcc.hpp"
+#include "include/forbcc.hpp"
 
 namespace forbcc {
 
-    const primitive_type _Void("void", "void");
-    const primitive_type _Char("char", "char");
-    const primitive_type _Int("int", "int");
-    const primitive_type _Short("short", "short");
-    const primitive_type _Long("long", "long");
-    const primitive_type _LongLong("long long", "long long");
+    const type_primitive _Void("void", "void");
+    const type_primitive _Char("char", "char");
+    const type_primitive _Int("int", "int");
+    const type_primitive _Short("short", "short");
+    const type_primitive _Long("long", "long");
+    const type_primitive _LongLong("long long", "long long");
 
 } // namespace forbcc
 
 int main() {
-    forbcc::method m{forbcc::_Int, "sum"};
+    // TODO: something is wrong in this scheme because of pointers, this main works but another program would not
+
+    forbcc::module example{static_cast<forbcc::entity*>(&forbcc::module::global_module), "example"};
+
+    forbcc::type_custom structure{&example, "structure"};
+
+    forbcc::type_array array{forbcc::_Char, 10};
+
+    forbcc::variable attr1{forbcc::_Long, "a1"};
+    forbcc::variable attr2{forbcc::_Short, "a2"};
+    forbcc::variable attr3{array, "a3"};
+
+    structure.insert(attr1.name, attr1);
+    structure.insert(attr2.name, attr2);
+    structure.insert(attr3.name, attr3);
+
+    example.insert(structure.name, &structure);
+
+    forbcc::interface rpc_class{&example, "rpc_class"};
+
+    forbcc::method m{&rpc_class, "sum", forbcc::_Int};
 
     forbcc::parameter p1{forbcc::direction::IN, forbcc::_Int, "a"};
     forbcc::parameter p2{forbcc::direction::IN, forbcc::_Int, "b"};
+    forbcc::parameter p3{forbcc::direction::OUT, structure, "c"};
 
-    m.insert_parameter(p1);
-    m.insert_parameter(p2);
+    m.insert(p1.var.name, p1);
+    m.insert(p2.var.name, p2);
+    m.insert(p3.var.name, p3);
+
+    rpc_class.insert(m.id(), m);
+
+    example.insert(rpc_class.name, &rpc_class);
+
+    forbcc::module::global_module.insert(example.name, &example);
 
     forbcc::code_ostream output{std::cout};
 
-    forbcc::interface rpc_class{"rpc_class"};
-
-    rpc_class.insert_method(m);
-
     std::cout << "############ DECLARATION " << std::endl << std::endl;
 
-    rpc_class.generate_declaration(output);
+    forbcc::module::global_module.print_declaration(output);
 
     std::cout << "############ DEFINITION " << std::endl << std::endl;
 
-    rpc_class.generate_definition(output);
-
+    forbcc::module::global_module.print_definition(output);
 
     /*
     // Openning a new stream controlled by our code formatter
     forbcc::code_ostream output{std::cout};
 
     // Array type used within our class
-    forbcc::array_type int_array{forbcc::_Int, 10};
+    forbcc::type_array int_array{forbcc::_Int, 10};
 
     // Our class
-    forbcc::custom_type disney{forbcc::global_module, "disney"};
+    forbcc::type_custom disney{forbcc::global_module, "disney"};
 
     // Attributes of our class
     forbcc::variable pippo{&disney, forbcc::_Int, "pippo"};
@@ -84,12 +107,12 @@ int main() {
     forbcc::parameter in_b{forbcc::direction::IN, forbcc::_Int, "b"};
     forbcc::parameter out_c{forbcc::direction::OUT, forbcc::_Int, "c"};
 
-    forbcc::array_type intarray{forbcc::_Long, 15};
+    forbcc::type_array intarray{forbcc::_Long, 15};
     forbcc::parameter out_arr{forbcc::direction::OUT, intarray, "arr"};
 
     forbcc::parameter disney_param{forbcc::direction::INOUT, disney, "custom"};
 
-    forbcc::array_type intmatrix{intarray, 5};
+    forbcc::type_array intmatrix{intarray, 5};
     forbcc::parameter in_matrix{forbcc::direction::IN, intmatrix, "matrix"};
 
     intmethod.insert_parameter(in_a);

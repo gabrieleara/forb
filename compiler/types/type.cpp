@@ -1,56 +1,36 @@
 #include <string>
 
-#include "code_ostream.hpp"
-#include "types/type.hpp"
-#include "types/custom_type.hpp"
-#include "variable.hpp"
+#include "../include/code_ostream.hpp"
+#include "../include/types/type.hpp"
+
+/// Does nothing, since only custom types (structures) require declaration
+void forbcc::type::print_declaration(forbcc::code_ostream &out __attribute__((unused))) const {}
+
+/// Does nothing, since no type requires definition
+void forbcc::type::print_definition(forbcc::code_ostream &out __attribute__((unused))) const {}
 
 
-using code_ostream = forbcc::code_ostream;
-using type = forbcc::type;
-using variable = forbcc::variable;
-
-type::~type() {}
-
-std::string type::get_codename() const {
-    return name;
+void forbcc::type::print_var_declaration(forbcc::code_ostream &out,
+                                         const std::string &var_name) const {
+    out << codename() << " " << var_name;
 }
 
-std::string type::get_reference_name() const {
-    return get_codename() + "&&";
+
+void forbcc::type::print_var_reference(forbcc::code_ostream &out,
+                                       const std::string &var_name) const {
+    out << codename() << " &" << var_name;
 }
 
-void type::print_declaration(code_ostream &output __attribute__((unused))) const {
-    // By default, no declaration is needed, only custom types require
-    // declaration
+
+void forbcc::type::print_var_marshal(forbcc::code_ostream &out, const std::string &var_name,
+                                     const forbcc::marshal do_undo) const {
+    std::string action = (do_undo == marshal::MARSHAL) ? "marshal" : "unmarshal";
+    out << var_name << " = forb::streams::" << action << "(" << var_name << ");" << std::endl;
 }
 
-void type::print_definition(code_ostream &output __attribute__((unused)),
-                            const std::string &scope __attribute__((unused))) const {
-    // Same as declaration
-}
 
-void type::print_var_declaration(code_ostream &output, const std::string &var_name) const {
-    output << get_codename() << " " << var_name;
+void forbcc::type::print_var_serialize(forbcc::code_ostream &out, const std::string &var_name,
+                                       const forbcc::serialize do_undo) const {
+    std::string action = (do_undo == serialize::SEND) ? "send" : "recv";
+    out << "datastream->" << action << "(&" << var_name << ", sizeof(" << var_name << "));" << std::endl;
 }
-
-void type::print_var_reference(code_ostream &output, const std::string &var_name) const {
-    output << get_codename() << " &" << var_name;
-}
-
-void type::print_var_marshal(code_ostream &output, const std::string &var_name) const {
-    output << var_name << " = forb::streams::marshal(" << var_name << ");" << std::endl;
-}
-
-void type::print_var_unmarshal(code_ostream &output, const std::string &var_name) const {
-    output << var_name << " = forb::streams::unmarshal(" << var_name << ");" << std::endl;
-}
-
-void type::print_var_recv(code_ostream &output, const std::string &var_name) const {
-    output << "datastream->recv(&" << var_name << ", sizeof(" << var_name << "));" << std::endl;
-}
-
-void type::print_var_send(code_ostream &output, const std::string &var_name) const {
-    output << "datastream->send(&" << var_name << ", sizeof(" << var_name << "));" << std::endl;
-}
-

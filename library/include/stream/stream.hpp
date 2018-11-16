@@ -44,25 +44,9 @@ namespace forb {
         // TODO: this template should be tested
         template<typename T>
         void marshal(T v[], size_t N) {
-            static_assert(std::is_array<T>::value,
-                          "Transfer of arrays of arrays is not supported, consider sending a long array accessed as a matrix.");
-
             for (size_t idx = 0; idx < N; ++idx) {
                 v[idx] = marshal(v[idx]);
             }
-
-            /*
-            for (size_t idx = 0; idx < N; ++idx) {
-                if (std::is_array<T>::value) {
-                    // TODO: RIGHT NOW PREVENTED BY THE STATIC ASSERT
-                    // The array has another array within, bad thing
-                    // TODO: how to get the SIZE here?
-                    // marshal(v[idx], SIZE);
-                } else {
-                    v[idx] = marshal(v[idx]);
-                }
-            }
-             */
         }
 
         template<typename T>

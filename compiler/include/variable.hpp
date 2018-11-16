@@ -1,40 +1,38 @@
 #ifndef FORBCC_VARIABLE_H
 #define FORBCC_VARIABLE_H
 
-#include <string> // std::string
+#include "entity.hpp"
+#include "types/type_custom.hpp"
 
 namespace forbcc {
-
-    class type;
-
     class code_ostream;
 
-    class custom_type;
-
-    class variable {
+    class variable : public entity {
     public:
-        const forbcc::custom_type *scope;
         const forbcc::type &var_type;
-        const std::string name;
 
-        variable() = delete;
-        //variable(variable &) = delete;
-        //variable(variable &&) = delete;
+        variable(const type &var_type, const std::string &name)
+                : entity(nullptr, name),
+                  var_type(var_type) {};
 
-        variable(const custom_type *scope, const type &var_type,
-                 const std::string name) : scope(scope), var_type(var_type), name(name) {};
+        void print_declaration(code_ostream &out) const override {
+            var_type.print_var_declaration(out, name);
+        };
 
-        void print_declaration(code_ostream &output) const;
+        void print_definition(code_ostream &out __attribute__((unused))) const override {};
 
-        void print_reference(code_ostream &output) const;
+        void print_reference(code_ostream &out) const {
+            var_type.print_var_reference(out, name);
+        };
 
-        void print_marshal(code_ostream &output) const;
+        void print_marshal(code_ostream &out, const marshal &do_undo) const {
+            var_type.print_var_marshal(out, name, do_undo);
+        };
 
-        void print_unmarshal(code_ostream &output) const;
+        void print_serialize(code_ostream &out, const serialize &do_undo) const {
+            var_type.print_var_serialize(out, name, do_undo);
+        };
 
-        void print_recv(code_ostream &output) const;
-
-        void print_send(code_ostream &output) const;
     };
 
 } // namespace forbcc

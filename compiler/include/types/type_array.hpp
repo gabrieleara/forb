@@ -6,38 +6,29 @@
 
 namespace forbcc {
 
-    class array_type : public type {
+    class type_array : public type {
     public:
         const type &item_type;
         const int length;
 
-        array_type() = delete;
-
-        //array_type(array_type &) = delete;
-        array_type(array_type &&) = delete;
-
-        // Any trivially copiable type can be accepted as array item type
-        // We limit that to only types known by the library though
-        array_type(const type &item_type, const int length)
-                : type("forb_array_" + item_type.name),
+        /// Any trivially copiable type can be accepted as an array item type
+        type_array(const type &item_type, const int length)
+                : type(nullptr, "forb_array_" + item_type.name),
                   item_type(item_type),
                   length(length) {};
 
-        std::string get_codename() const override;       // item_type.get_actual_type() << "[" << length << "]";
-        std::string get_reference_name() const override; // get_codename()
+        /// Arrays of arrays cannot be declared
+        type_array(const type_array &item_type, const int length) = delete;
 
         void print_var_declaration(code_ostream &output, const std::string &var_name) const override;
-        // oss << item_type.get_actual_type() << " " << name << "[" << length << "]" << ";";
 
         void print_var_reference(code_ostream &output, const std::string &var_name) const override;
 
-        void print_var_marshal(code_ostream &output, const std::string &var_name) const override;
+        void print_var_marshal(code_ostream &out, const std::string &var_name, const marshal do_undo)
+        const override;
 
-        void print_var_unmarshal(code_ostream &output, const std::string &var_name) const override;
-
-        void print_var_recv(code_ostream &output, const std::string &var_name) const override;
-
-        void print_var_send(code_ostream &output, const std::string &var_name) const override;
+        void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize do_undo)
+        const override;
 
         // protected:
         // virtual bool should_getter_return_const() const { return false; };

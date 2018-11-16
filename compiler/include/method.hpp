@@ -2,52 +2,60 @@
 // Created by gabriele on 14/11/18.
 //
 
-#ifndef FORB_METHOD_H
-#define FORB_METHOD_H
+#ifndef FORBCC_METHOD_H
+#define FORBCC_METHOD_H
 
-#include <string>
-#include <map>
+#include "entity.hpp"
+#include "ordered_unique_list.hpp"
 
-// TODO: avoid reordering of values, but keep track of inserted names
+#include "interface.hpp"
+#include "parameter.hpp"
+
 namespace forbcc {
     // Forward declarations
-
     class code_ostream;
 
     class type;
 
-    class parameter;
-
-    class method {
-        using parameters_list = std::map<std::string, parameter>;
-        parameters_list parameters;
+    class method : public entity, public virtual ordered_unique_list<parameter> {
         int counters[3] = {0, 0, 0};
 
     public:
         const type &return_type;
-        const std::string name;
 
     public:
-        method(const type &return_type, const std::string &&name) : return_type(return_type), name(name) {};
+        method(const interface *parent, const std::string &name, const type &return_type)
+                : entity(parent, name),
+                  return_type(return_type) {};
 
-        void print_declaration(code_ostream &) const;
+        void print_declaration(code_ostream &out) const override;
 
-        void print_virtual_declaration(code_ostream &) const;
+        void print_definition(code_ostream &out __attribute__((unused))) const override {
 
-        void print_stub_definition(code_ostream &output, const std::string &scope, const std::string &enumname) const;
+        };
 
-        void print_skeleton_definition(code_ostream &output) const;
+        void print_virtual_declaration(code_ostream &out) const;
 
-        bool insert_parameter(const parameter &param);
+        void print_stub_definition(code_ostream &out, const std::string &scope, const std::string &enumname) const;
 
-        std::string get_id() const;
+        void print_skeleton_definition(code_ostream &out) const;
+
+        bool insert(std::string key, const parameter &param) override {
+            bool success = ordered_unique_list::insert(key, param);
+
+            if (success) {
+                ++counters[static_cast<int>(param.dir)];
+            }
+
+            return success;
+        };
+
+        std::string id() const;
 
     private:
-        void print_prototype(forbcc::code_ostream &output, const std::string &thename) const;
-
-
+        void print_prototype(forbcc::code_ostream &out, const std::string &thename) const;
     };
 }
 
 
-#endif //FORB_METHOD_H
+#endif //FORBCC_METHOD_H

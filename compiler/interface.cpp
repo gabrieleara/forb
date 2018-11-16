@@ -2,36 +2,13 @@
 // Created by gabriele on 15/11/18.
 //
 
-#include <interface.hpp>
+#include "code_ostream.hpp"
 
 #include "interface.hpp"
 #include "parameter.hpp"
 #include "method.hpp"
 
-#include "code_ostream.hpp"
-
-template<typename K, typename V>
-inline bool insert_map_simplified(std::map<K, V> &mymap, K key, V value) {
-    return mymap.insert(std::make_pair(key, value)).second;
-}
-
-/*
-void replaceAll(std::string &str, const std::string &from, const std::string &to) {
-    if (from.empty())
-        return;
-    size_t start_pos = 0;
-    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
-    }
-}
-*/
-
-bool forbcc::interface::insert_method(const forbcc::method &themethod) {
-    return insert_map_simplified(methods, themethod.get_id(), themethod);
-}
-
-inline void forbcc::interface::generate_stub_declaration(forbcc::code_ostream &output) const {
+inline void forbcc::interface::print_stub_declaration(forbcc::code_ostream &output) const {
     output << "class " << name << ";" << std::endl
            << std::endl
            << "using " << name_ptr() << " = std::shared_ptr<" << name << ">;" << std::endl
@@ -52,8 +29,8 @@ inline void forbcc::interface::generate_stub_declaration(forbcc::code_ostream &o
 
     output << "// Methods as listed in the specification file" << std::endl;
 
-    for (const auto &it : methods) {
-        it.second.print_declaration(output);
+    for (const auto &it : list()) {
+        it.print_declaration(output);
     }
 
     output << std::endl;
@@ -106,8 +83,8 @@ inline void forbcc::interface::generate_stub_declaration(forbcc::code_ostream &o
     output << "};" << std::endl;
 }
 
-inline void forbcc::interface::generate_skeleton_declaration(forbcc::code_ostream &output) const {
-    output << "class " << name_skeleton() << ": public virtual forb::base_skeleton {" << std::endl
+inline void forbcc::interface::print_skeleton_declaration(forbcc::code_ostream &output) const {
+    output << "class " << name_skeleton() << " : public virtual forb::base_skeleton {" << std::endl
            << std::endl
            << "public:" << std::endl;
 
@@ -119,8 +96,8 @@ inline void forbcc::interface::generate_skeleton_declaration(forbcc::code_ostrea
 
     output << "// Methods as listed in the specification file" << std::endl;
 
-    for (const auto &it : methods) {
-        it.second.print_virtual_declaration(output);
+    for (const auto &it : list()) {
+        it.print_virtual_declaration(output);
     }
 
     output << std::endl;
@@ -131,7 +108,7 @@ inline void forbcc::interface::generate_skeleton_declaration(forbcc::code_ostrea
 
     output << "void execute_call(forb::call_id_t code," << std::endl
            << "                  forb::streams::stream *callstream," << std::endl
-           << "                  forb::streams::stream *datastream) final override;" << std::endl
+           << "                  forb::streams::stream *datastream) final;" << std::endl
            << std::endl;
 
     output.decrement_indentation();
@@ -139,14 +116,14 @@ inline void forbcc::interface::generate_skeleton_declaration(forbcc::code_ostrea
     output << "};" << std::endl;
 }
 
-inline void forbcc::interface::generate_methods_enum(forbcc::code_ostream &output) const {
+inline void forbcc::interface::print_methods_enum(forbcc::code_ostream &output) const {
     output << "/// Enumerator used to distinguish the requested call." << std::endl;
     output << "enum class " << name_enum() << " : forb::call_id_t {" << std::endl;
 
     output.increment_indentation();
 
-    for (const auto &it : methods) {
-        output << it.first << "," << std::endl;
+    for (const auto &it : list()) {
+        output << it.id() << "," << std::endl;
     }
 
     output.decrement_indentation();
@@ -154,13 +131,13 @@ inline void forbcc::interface::generate_methods_enum(forbcc::code_ostream &outpu
     output << "};" << std::endl;
 }
 
-inline void forbcc::interface::generate_static_attributes_definition(forbcc::code_ostream &output) const {
+inline void forbcc::interface::print_static_attributes_definition(forbcc::code_ostream &output) const {
     output << "/// Initializing static attributes for " << codename() << " class factory." << std::endl
            << codename() << "             " << codename() << "::_factory{};" << std::endl
            << codename() << "::init_class " << codename() << "::_init{};" << std::endl;
 }
 
-inline void forbcc::interface::generate_factory_match(forbcc::code_ostream &output) const {
+inline void forbcc::interface::print_factory_match(forbcc::code_ostream &output) const {
     output << "/// Match method, needed by the factory." << std::endl
            << "bool " << codename() << "::_match(const std::string &type) const {" << std::endl;
 
@@ -171,7 +148,7 @@ inline void forbcc::interface::generate_factory_match(forbcc::code_ostream &outp
     output << "}" << std::endl;
 }
 
-inline void forbcc::interface::generate_factory_create(forbcc::code_ostream &output) const {
+inline void forbcc::interface::print_factory_create(forbcc::code_ostream &output) const {
     output << "/// Create method, used by the factory." << std::endl
            << "forb::base_stub *" << codename() << "::_create_empty() const {" << std::endl;
 
@@ -182,7 +159,7 @@ inline void forbcc::interface::generate_factory_create(forbcc::code_ostream &out
     output << "}" << std::endl;
 }
 
-inline void forbcc::interface::generate_narrows(forbcc::code_ostream &output) const {
+inline void forbcc::interface::print_narrows(forbcc::code_ostream &output) const {
     // FIRST NARROW ASSIGNMENT BEGIN
 
     output << "/// Narrows a generic forb::remote_var reference to a " << codename_ptr() << " if possible." << std::endl
@@ -284,25 +261,24 @@ inline void forbcc::interface::generate_narrows(forbcc::code_ostream &output) co
     // ASSIGN END
 }
 
-inline void forbcc::interface::generate_stub_methods(forbcc::code_ostream &output) const {
-    for (const auto &it : methods) {
-        const method &m = it.second;
-
-        m.print_stub_definition(output, codename(), name_enum());
+inline void forbcc::interface::print_stub_methods(forbcc::code_ostream &output) const {
+    for (const auto &it : list()) {
+        it.print_stub_definition(output, codename(), name_enum());
 
         output << std::endl;
     }
 }
 
-inline void forbcc::interface::generate_skeleton_method(forbcc::code_ostream &output) const {
-    size_t blanks_size = codename_skeleton().length() + 5;
+inline void forbcc::interface::print_skeleton_method(forbcc::code_ostream &output) const {
+    // Used to align the printed code to opened parenthesis
+    size_t blanks_size = codename_skeleton().length() + 20;
     std::string blanks(blanks_size, ' ');
 
     output << "/// This method dispatches the call to the right virtual method, which must be redefined in a subclass."
            << std::endl
            << "void " << codename_skeleton() << "::execute_call(forb::call_id_t code," << std::endl
-           << blanks << "forb::streams::stream * callstream," << std::endl
-           << blanks << "forb::streams::stream * datastream) {" << std::endl;
+           << blanks << "forb::streams::stream *callstream," << std::endl
+           << blanks << "forb::streams::stream *datastream) {" << std::endl;
 
     output.increment_indentation();
 
@@ -313,11 +289,11 @@ inline void forbcc::interface::generate_skeleton_method(forbcc::code_ostream &ou
     output << "switch((" << name_enum() << ") code) {" << std::endl;
     output.increment_indentation();
 
-    for (const auto &it : methods) {
-        output << "case " << name_enum() << "::" << it.first << ":" << std::endl;
+    for (const auto &it : list()) {
+        output << "case " << name_enum() << "::" << it.id() << ":" << std::endl;
 
         output.increment_indentation();
-        it.second.print_skeleton_definition(output);
+        it.print_skeleton_definition(output);
         output.decrement_indentation();
     }
 
@@ -331,33 +307,33 @@ inline void forbcc::interface::generate_skeleton_method(forbcc::code_ostream &ou
 
 }
 
-void forbcc::interface::generate_declaration(forbcc::code_ostream &output) const {
-    generate_stub_declaration(output);
+void forbcc::interface::print_declaration(forbcc::code_ostream &output) const {
+    print_stub_declaration(output);
 
     output << std::endl;
 
-    generate_skeleton_declaration(output);
+    print_skeleton_declaration(output);
 }
 
-void forbcc::interface::generate_definition(forbcc::code_ostream &output) const {
-    generate_methods_enum(output);
+void forbcc::interface::print_definition(forbcc::code_ostream &output) const {
+    print_methods_enum(output);
     output << std::endl;
 
-    generate_static_attributes_definition(output);
+    print_static_attributes_definition(output);
     output << std::endl;
 
-    generate_factory_match(output);
+    print_factory_match(output);
     output << std::endl;
 
-    generate_factory_create(output);
+    print_factory_create(output);
     output << std::endl;
 
-    generate_narrows(output);
+    print_narrows(output);
     output << std::endl;
 
-    generate_stub_methods(output);
+    print_stub_methods(output);
     output << std::endl;
 
-    generate_skeleton_method(output);
+    print_skeleton_method(output);
     output << std::endl;
 }
