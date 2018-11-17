@@ -20,6 +20,4 @@
 #include "interface.hpp"
 #include "method.hpp"
 
-
-
 #endif //FORBCC_FORBCC_H

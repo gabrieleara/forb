@@ -5,20 +5,48 @@
 #include "../module.hpp"
 
 namespace forbcc {
-    enum class marshal { MARSHAL, UNMARSHAL };
-    enum class serialize { SEND, RECV };
+
+    /// Enum specifying which operation between marshalling and unmarshalling is required
+    enum class marshal {
+        MARSHAL, UNMARSHAL
+    };
+
+    /// Enum specifying which operation between serialization and deserialization is required
+    enum class serialize {
+        SEND, RECV
+    };
 
     // Base class used to define primitive types, custom types (structures) and arrays
     class type : public entity {
     public:
-        /// Including constructors from superclass
-        // using entity::entity;
-        type(const module *parent, std::string name) : entity(parent, name) {};
+        /* ********************************************** CONSTRUCTORS ********************************************** */
 
-        /// Implementing entity method
+        /// Using constructors from superclass
+        type(const std::shared_ptr<const module> &parent, const std::string &name) : entity(parent, name) {};
+
+        /**************************************************************************************************************/
+
+        /// This class is virtual, so it requires a virtual destructor
+        ~type() override = default;
+
+        /// This class supports moving
+        type(type &&) = default;
+
+        /// This class supports moving
+        type &operator=(type &&) = default;
+
+        /// This class supports copying
+        type(const type &) = default;
+
+        /// This class supports copying
+        type &operator=(const type &) = default;
+
+        /**************************************************************************************************************/
+
+        /// Prints the declaration of the given type, if required.
         void print_declaration(code_ostream &out) const override;
 
-        /// Implementing entity method
+        /// Prints the definition of the given type, if required.
         void print_definition(code_ostream &out) const override;
 
         /// Print the declaration of a variable of this type
@@ -28,10 +56,10 @@ namespace forbcc {
         virtual void print_var_reference(code_ostream &out, const std::string &var_name) const;
 
         /// Print the actions needed to either marshal or unmarshal a variable of this type
-        virtual void print_var_marshal(code_ostream &out, const std::string &var_name, const marshal do_undo) const;
+        virtual void print_var_marshal(code_ostream &out, const std::string &var_name, const marshal &do_undo) const;
 
         /// Print the actions needed to either serialize or deserialize a variable of this type
-        virtual void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize do_undo) const;
+        virtual void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize &do_undo) const;
     };
 
 } // namespace forbcc

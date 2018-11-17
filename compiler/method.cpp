@@ -2,6 +2,7 @@
 // Created by gabriele on 14/11/18.
 //
 
+// TODO: remove some includes
 #include <forbcc.hpp>
 #include "method.hpp"
 
@@ -10,9 +11,10 @@
 #include "parameter.hpp"
 #include "types/type.hpp"
 
+// For documentation, see corresponding header file
 
-void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::string &thename) const {
-    out << return_type.codename() << " " << thename << "(";
+inline void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::string &thename) const {
+    out << _return_type->codename() << " " << thename << "(";
 
     bool first = true;
     for (const parameter &it : list()) {
@@ -28,28 +30,21 @@ void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::strin
     out << ")";
 }
 
-/*
-void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::string &thename) const {
-
-}
- */
-
-// TODO: methods cannot be declared const
 void forbcc::method::print_declaration(forbcc::code_ostream &out) const {
-    print_prototype(out, name);
+    print_prototype(out, name());
     out << ";" << std::endl;
 }
 
 void forbcc::method::print_virtual_declaration(forbcc::code_ostream &out) const {
     out << "virtual ";
-    print_prototype(out, name);
+    print_prototype(out, name());
     out << " = 0;" << std::endl;
 }
 
 void forbcc::method::print_stub_definition(code_ostream &out, const std::string &scope,
                                            const std::string &enumname) const {
     // First of all, let's print the header of the function
-    print_prototype(out, scope + "::" + name);
+    print_prototype(out, scope + "::" + name());
     out << " {" << std::endl;
 
     out.increment_indentation();
@@ -60,8 +55,8 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
     out << std::endl;
 
     // Then we start to serialize input parameters
-    if (counters[static_cast<int>(direction::IN)] > 0 ||
-        counters[static_cast<int>(direction::INOUT)] > 0) {
+    if (_counters[static_cast<int>(direction::IN)] > 0 ||
+        _counters[static_cast<int>(direction::INOUT)] > 0) {
 
         out << "// Objects serialization" << std::endl;
         out << "if (datastream->require_marshal()) {" << std::endl;
@@ -70,8 +65,8 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
         out << "// Data requires marshalling before being sent" << std::endl;
 
         for (const auto &it: list()) {
-            if (it.dir != direction::OUT) {
-                it.var.print_marshal(out, marshal::MARSHAL);
+            if (it.dir() != direction::OUT) {
+                it.var().print_marshal(out, marshal::MARSHAL);
             }
         }
         out.decrement_indentation();
@@ -82,8 +77,8 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
         out << "// Now write stuff to the stream" << std::endl;
 
         for (const auto &it: list()) {
-            if (it.dir != direction::OUT) {
-                it.var.print_serialize(out, serialize::SEND);
+            if (it.dir() != direction::OUT) {
+                it.var().print_serialize(out, serialize::SEND);
             }
         }
     }
@@ -95,13 +90,13 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
     out << std::endl;
 
     // After successful call invocation, we receive output parameters
-    if (counters[static_cast<int>(direction::OUT)] > 0 ||
-        counters[static_cast<int>(direction::INOUT)] > 0) {
+    if (_counters[static_cast<int>(direction::OUT)] > 0 ||
+        _counters[static_cast<int>(direction::INOUT)] > 0) {
 
         out << "// Read output parameters" << std::endl;
         for (const auto &it: list()) {
-            if (it.dir != direction::IN) {
-                it.var.print_serialize(out, serialize::RECV);
+            if (it.dir() != direction::IN) {
+                it.var().print_serialize(out, serialize::RECV);
             }
         }
         out << std::endl;
@@ -110,8 +105,8 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
         out.increment_indentation();
 
         for (const auto &it: list()) {
-            if (it.dir != direction::IN) {
-                it.var.print_marshal(out, marshal::UNMARSHAL);
+            if (it.dir() != direction::IN) {
+                it.var().print_marshal(out, marshal::UNMARSHAL);
             }
         }
 
@@ -123,16 +118,16 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
     // TODO: change to a macro
 
     // Finally if the return type is not void we receive that too
-    if (return_type.name != "void") {
+    if (_return_type->name() != "void") {
         out << "// Finally read result" << std::endl;
 
         std::string resvariable_name = "resvalue";
         while (is_contained(resvariable_name)) {
             // The variable name is already used by a parameter! Keep going
-            resvariable_name = "_" + resvariable_name;
+            resvariable_name = "_" + resvariable_name; // NOLINT
         }
 
-        variable resvariable{return_type, resvariable_name};
+        variable resvariable{_return_type, resvariable_name};
 
         resvariable.print_declaration(out);
         out << ";" << std::endl;
@@ -151,7 +146,7 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
         out << "}" << std::endl;
         out << std::endl;
 
-        out << "return " << resvariable.name << ";" << std::endl;
+        out << "return " << resvariable.name() << ";" << std::endl;
     }
 
     out.decrement_indentation();
@@ -162,7 +157,7 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
 void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const {
     // First of all, declare variables to contain all parameters
     for (const auto &it : list()) {
-        it.var.print_declaration(out);
+        it.var().print_declaration(out);
         out << ";" << std::endl;
     };
 
@@ -170,8 +165,8 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     // Then receive each IN/INOUT parameter
     for (const auto &it: list()) {
-        if (it.dir != direction::OUT) {
-            it.var.print_serialize(out, serialize::RECV);
+        if (it.dir() != direction::OUT) {
+            it.var().print_serialize(out, serialize::RECV);
         }
     }
 
@@ -183,8 +178,8 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     // Then receive each IN/INOUT parameter
     for (const auto &it: list()) {
-        if (it.dir != direction::OUT) {
-            it.var.print_marshal(out, marshal::UNMARSHAL);
+        if (it.dir() != direction::OUT) {
+            it.var().print_marshal(out, marshal::UNMARSHAL);
         }
     }
 
@@ -199,7 +194,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     std::string rescode_name = "rescode";
     while (is_contained(rescode_name)) {
         // The variable name is already used by a parameter! Keep going
-        rescode_name = "_" + rescode_name;
+        rescode_name = "_" + rescode_name; // NOLINT
     }
 
     out << "uint16_t " << rescode_name << " = 1;" << std::endl;
@@ -216,20 +211,20 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     out << std::endl;
     out << "// Perform virtual call" << std::endl;
 
-    if (return_type.name != "void") {
+    if (_return_type->name() != "void") {
         std::string resvariable_name = "resvalue";
         while (is_contained(resvariable_name)) {
             // The variable name is already used by a parameter! Keep going
-            resvariable_name = "_" + resvariable_name;
+            resvariable_name = "_" + resvariable_name; // NOLINT
         }
 
-        variable resvariable{return_type, resvariable_name};
+        variable resvariable{_return_type, resvariable_name};
 
         resvariable.print_declaration(out);
         out << " = ";
     }
 
-    out << name << "(";
+    out << name() << "(";
 
     bool first = true;
     for (const auto &it : list()) {
@@ -239,7 +234,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
             out << ", ";
         }
 
-        out << it.var.name;
+        out << it.var().name();
     }
 
     out << ");" << std::endl;
@@ -252,8 +247,8 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     out.increment_indentation();
 
     for (const auto &it : list()) {
-        if (it.dir != direction::IN) {
-            it.var.print_marshal(out, marshal::MARSHAL);
+        if (it.dir() != direction::IN) {
+            it.var().print_marshal(out, marshal::MARSHAL);
         }
     }
 
@@ -263,25 +258,25 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     out << std::endl;
 
     for (const auto &param : list()) {
-        if (param.dir != direction::IN) {
-            param.var.print_serialize(out, serialize::SEND);
+        if (param.dir() != direction::IN) {
+            param.var().print_serialize(out, serialize::SEND);
         }
     }
 
     out << std::endl;
 
 
-    if (return_type.name != "void") {
+    if (_return_type->name() != "void") {
         out << "if (datastream->require_marshal()) {" << std::endl;
         out.increment_indentation();
 
         std::string resvariable_name = "resvalue";
         while (is_contained(resvariable_name)) {
             // The variable name is already used by a parameter! Keep going
-            resvariable_name = "_" + resvariable_name;
+            resvariable_name = "_" + resvariable_name; // NOLINT
         }
 
-        variable resvariable{return_type, resvariable_name};
+        variable resvariable{_return_type, resvariable_name};
 
         resvariable.print_marshal(out, marshal::MARSHAL);
 
@@ -297,20 +292,16 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 std::string forbcc::method::id() const {
     std::ostringstream oss{};
 
-    oss << "_F" << name << "E";
+    oss << "_F" << name() << "E";
 
     if (list().empty()) {
         oss << "void";
     } else {
         for (const auto &param : list()) {
-            oss << param.var.var_type.name.length() << param.var.var_type.name;
+            const std::string var_type_name = param.var().var_type()->name();
+            oss << var_type_name.length() << var_type_name;
 
-            /*
-            if (param.dir != direction::IN)
-                oss << "R";
-             */
-
-            oss << param.var.name.length() << param.var.name;
+            oss << param.var().name().length() << param.var().name();
         }
     }
 

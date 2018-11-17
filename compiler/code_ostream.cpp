@@ -4,14 +4,16 @@
 
 #include "code_ostream.hpp"
 
-void forbcc::code_ostream::code_stringbuf::putOutput() {
-    // Called by destructor.
-    // destructor can not call virtual methods.
+// For documentation, see corresponding header file
 
+void forbcc::code_ostream::code_stringbuf::putOutput() {
+    // Notice: this function is called also by the destructor.
     std::string content = str();
 
-    // Print indentation if the line is not empty (TODO: check if this works)
+    // Print indentation if the line is not empty
+    // FIXME: known bug, it prints indentation even if the content is an empty line.
     if (content.length() > 0) {
+        // TODO: Could be improved by using the fill constructor of the std::string class
         for (int i = 0; i < indentation; ++i) {
             output << "    "; // Each indentation is four spaces
         }

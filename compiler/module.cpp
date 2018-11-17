@@ -2,14 +2,17 @@
 // Created by gabriele on 14/11/18.
 //
 
-#include "include/module.hpp"
+#include "module.hpp"
 #include "code_ostream.hpp"
 
-forbcc::module forbcc::module::global_module{nullptr};
+// For documentation, see corresponding header file
+
+/// The global module has no parent module
+const std::shared_ptr<forbcc::module> forbcc::module::global_module = std::make_shared<forbcc::module>(nullptr);
 
 void forbcc::module::print_declaration(forbcc::code_ostream &out) const {
-    if (name.length()) {
-        out << "namespace " << name << " {" << std::endl;
+    if (name().length()) {
+        out << "namespace " << name() << " {" << std::endl;
         out.increment_indentation();
     }
 
@@ -17,9 +20,9 @@ void forbcc::module::print_declaration(forbcc::code_ostream &out) const {
         it->print_declaration(out);
     }
 
-    if (name.length()) {
+    if (name().length()) {
         out.decrement_indentation();
-        out << "} // namespace " << name << std::endl;
+        out << "} // namespace " << name() << std::endl;
     }
 
 }

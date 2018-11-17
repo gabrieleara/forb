@@ -8,19 +8,21 @@
 #include "parameter.hpp"
 #include "method.hpp"
 
+// For documentation, see corresponding header file
+
 inline void forbcc::interface::print_stub_declaration(forbcc::code_ostream &output) const {
-    output << "class " << name << ";" << std::endl
+    output << "class " << name() << ";" << std::endl
            << std::endl
-           << "using " << name_ptr() << " = std::shared_ptr<" << name << ">;" << std::endl
-           << "using " << name_var() << " = std::unique_ptr<" << name << ">;" << std::endl
+           << "using " << name_ptr() << " = std::shared_ptr<" << name() << ">;" << std::endl
+           << "using " << name_var() << " = std::unique_ptr<" << name() << ">;" << std::endl
            << std::endl
-           << "class " << name << " : public virtual forb::base_stub {" << std::endl
+           << "class " << name() << " : public virtual forb::base_stub {" << std::endl
            << "private:" << std::endl;
 
     output.increment_indentation();
 
     output << "// Default constructor, no other constructor needed" << std::endl
-           << name << "() = default;" << std::endl
+           << name() << "() = default;" << std::endl
            << std::endl;
 
     output.decrement_indentation();
@@ -60,7 +62,7 @@ inline void forbcc::interface::print_stub_declaration(forbcc::code_ostream &outp
     output.increment_indentation();
 
     output << "// Static instance that will act as factory" << std::endl
-           << "static " << name << " _factory;" << std::endl
+           << "static " << name() << " _factory;" << std::endl
            << std::endl;
 
     output << "// Inner class used to push the factory in the polymorphic one" << std::endl
@@ -168,7 +170,7 @@ inline void forbcc::interface::print_narrows(forbcc::code_ostream &output) const
 
     output.increment_indentation();
 
-    output << name << " *ptr = dynamic_cast<" << name << " *>(reference.get());" << std::endl
+    output << name() << " *ptr = dynamic_cast<" << name() << " *>(reference.get());" << std::endl
            << std::endl
            << "if (ptr == nullptr) {" << std::endl;
 
@@ -180,7 +182,7 @@ inline void forbcc::interface::print_narrows(forbcc::code_ostream &output) const
 
     output.increment_indentation();
     output << "// The reference is moved to the new one, after correct casting" << std::endl
-           << "return std::dynamic_pointer_cast<" << name << ">(" << std::endl
+           << "return std::dynamic_pointer_cast<" << name() << ">(" << std::endl
            << "        forb::remote_ptr{std::move(reference)});" << std::endl;
     output.decrement_indentation();
 
@@ -202,7 +204,7 @@ inline void forbcc::interface::print_narrows(forbcc::code_ostream &output) const
 
     output.increment_indentation();
 
-    output << name << " *ptr = dynamic_cast<" << name << " *>(reference.get());" << std::endl
+    output << name() << " *ptr = dynamic_cast<" << name() << " *>(reference.get());" << std::endl
            << std::endl
            << "if (ptr == nullptr) {" << std::endl;
 
@@ -214,7 +216,7 @@ inline void forbcc::interface::print_narrows(forbcc::code_ostream &output) const
 
     output.increment_indentation();
     output << "// The reference is copied to the new one, after correct casting" << std::endl
-           << "return std::dynamic_pointer_cast<" << name << ">(reference);" << std::endl;
+           << "return std::dynamic_pointer_cast<" << name() << ">(reference);" << std::endl;
     output.decrement_indentation();
 
     output << "}" << std::endl;
@@ -235,7 +237,7 @@ inline void forbcc::interface::print_narrows(forbcc::code_ostream &output) const
 
     output.increment_indentation();
 
-    output << name << " *ptr = dynamic_cast<" << name << " *>(reference.get());" << std::endl
+    output << name() << " *ptr = dynamic_cast<" << name() << " *>(reference.get());" << std::endl
            << std::endl
            << "if (ptr == nullptr) {" << std::endl;
 
@@ -302,23 +304,20 @@ inline void forbcc::interface::print_skeleton_method(forbcc::code_ostream &outpu
     output.decrement_indentation();
     output << "}" << std::endl;
 
-
-    /**************************************************************************************************************/
-
 }
 
 void forbcc::interface::print_declaration(forbcc::code_ostream &output) const {
     print_stub_declaration(output);
-
     output << std::endl;
 
     print_skeleton_declaration(output);
+    output << std::endl;
+
+    print_methods_enum(output);
+    output << std::endl;
 }
 
 void forbcc::interface::print_definition(forbcc::code_ostream &output) const {
-    print_methods_enum(output);
-    output << std::endl;
-
     print_static_attributes_definition(output);
     output << std::endl;
 

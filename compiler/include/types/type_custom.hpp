@@ -12,28 +12,38 @@ namespace forbcc {
     /// Forward declarations to be used within this class declaration
     class variable;
 
-    /// Custom types are basically structures defined by the user
-    class type_custom : public type, public virtual ordered_unique_list<variable> {
-        /// Ordered list of attributes of the custom type
-        // ordered_unique_list<variable> attributes;
-
+    /// Custom types are basically structures defined by the user that can be transferred using the library
+    class type_custom : public type, public ordered_unique_list<variable> {
     public:
+        /* ********************************************** CONSTRUCTORS ********************************************** */
+
         /// Using constructors from superclass
-        type_custom(const module *parent, std::string name) : type(parent, name) {};
+        type_custom(const std::shared_ptr<const module> &parent, std::string name) : type(parent, name) {};
+
+        /**************************************************************************************************************/
+
+        /// This class is virtual, so it requires a virtual destructor
+        ~type_custom() override = default;
+
+        /// This class supports moving
+        type_custom(type_custom &&) = default;
+
+        /// This class supports moving
+        type_custom &operator=(type_custom &&) = default;
+
+        /// This class supports copying
+        type_custom(const type_custom &) = default;
+
+        /// This class supports copying
+        type_custom &operator=(const type_custom &) = default;
+
+        /**************************************************************************************************************/
 
         /// Custom types require a declaration of course
         void print_declaration(code_ostream &out) const override;
 
         /// Custom types define a partial specialization of the marshal/unmarshal templates
         void print_definition(code_ostream &out) const override;
-
-        /*
-        /// Inserts a new attribute in the module.
-        /// Proxy call to ordered_unique_list<variable>::insert
-        bool insert(std::string key, const variable &attr) {
-            return attributes.insert(key, attr);
-        };
-         */
     };
 
 } // namespace forbcc
