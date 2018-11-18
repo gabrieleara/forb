@@ -8,13 +8,14 @@
 #include <string>
 
 #include "entity.hpp"
-#include "ordered_unique_list.hpp"
+#include "templates/ordered_unique_list.hpp"
+#include "templates/shareable.hpp"
 
 namespace forbcc {
 
     /// Represents a module, which basically is a namespace, so it's a collection of other entities, which can be either
     /// other modules, custom types or interfaces
-    class module : public entity, public ordered_unique_list<std::shared_ptr<entity>> {
+    class module : public entity, public shareable<module>, public ordered_unique_list<std::shared_ptr<entity>> {
 
     public:
         /// Static member representing the global namespace
@@ -25,7 +26,6 @@ namespace forbcc {
         /// Using constructor from superclass
         module(const std::shared_ptr<const entity> &parent, const std::string &name) : entity(parent, name) {};
 
-    // protected:
         /// If parent module is nullptr, the created module is equivalent to the global namespace.
         /// However, this should only be called to actually create the global namespace, defined as a static property
         /// of this class.

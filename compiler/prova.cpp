@@ -1,15 +1,15 @@
 #include <iostream>
 
 #include "forbcc.hpp"
-#include "ordered_unique_list.hpp"
+#include "templates/ordered_unique_list.hpp"
 
 namespace forbcc {
 
-    const std::shared_ptr<const type_primitive> _Void = std::make_shared<type_primitive>("void", "void");
-    const std::shared_ptr<const type_primitive> _Char = std::make_shared<type_primitive>("char", "char");
-    const std::shared_ptr<const type_primitive> _Int = std::make_shared<type_primitive>("int", "int");
-    const std::shared_ptr<const type_primitive> _Short = std::make_shared<type_primitive>("short", "short");
-    const std::shared_ptr<const type_primitive> _Long = std::make_shared<type_primitive>("long", "long");
+    const type_primitive::ptr_const_t _Void  = type_primitive::new_ptr_const("void", "void");
+    const type_primitive::ptr_const_t _Char  = type_primitive::new_ptr_const("char", "char");
+    const type_primitive::ptr_const_t _Int   = type_primitive::new_ptr_const("int", "int");
+    const type_primitive::ptr_const_t _Short = type_primitive::new_ptr_const("short", "short");
+    const type_primitive::ptr_const_t _Long  = type_primitive::new_ptr_const("long", "long");
 
     // TODO: change primitive list
     using type_primitive_list = ordered_unique_list<std::shared_ptr<const type_primitive>>;
@@ -21,7 +21,7 @@ namespace forbcc {
 
     type_primitive_list primitives;
     // type_custom_list customs;
-    type_array_list arrays;
+    type_array_list     arrays;
 
     // interface_list interfaces;
     // module_list modules;
@@ -44,17 +44,17 @@ int main() {
     primitives.insert("short", forbcc::_Short);
     primitives.insert("long", forbcc::_Long);
 
-    std::shared_ptr<module> current_module = forbcc::module::global_module;
-    std::shared_ptr<type_custom> current_type = nullptr;
-    std::shared_ptr<interface> current_interface = nullptr;
-    std::shared_ptr<type_array> current_array = nullptr;
+    std::shared_ptr<module>      current_module    = forbcc::module::global_module;
+    std::shared_ptr<type_custom> current_type      = nullptr;
+    std::shared_ptr<interface>   current_interface = nullptr;
+    std::shared_ptr<type_array>  current_array     = nullptr;
 
     // END INITIALIZATION CODE
 
     // TODO: For each insert check for successfullness or not
 
     // CHECKED OK
-    std::shared_ptr<module> new_module = make_shared<module>(current_module, "example");
+    module::ptr_t new_module = module::new_ptr(current_module, "example");
     current_module->insert(new_module->codename(), new_module);
     current_module = new_module;
 
@@ -64,7 +64,7 @@ int main() {
     // current_module = &modules[codename];
 
     // CHECKED OK
-    std::shared_ptr<type_custom> new_structure = make_shared<type_custom>(current_module, "structure");
+    type_custom::ptr_t new_structure = type_custom::new_ptr(current_module, "structure");
     current_module->insert("structure", new_structure);
     current_type = new_structure;
 
@@ -74,7 +74,7 @@ int main() {
 
     // CHECKED OK
     // Arrays should be put in an array list, to avoid allocating multiple similar arrays
-    std::shared_ptr<type_array> new_array = make_shared<type_array>(primitives["char"], 10);
+    type_array::ptr_t new_array = type_array::new_ptr(primitives["char"], 10);
     arrays.insert(new_array->codename(), new_array);
     current_array = new_array;
 
@@ -89,7 +89,7 @@ int main() {
     current_type->insert(attr3.name(), attr3);
 
     // CHECKED OK
-    std::shared_ptr<forbcc::interface> new_interface = std::make_shared<interface>(current_module, "rpc_class");
+    forbcc::interface::ptr_t new_interface = interface::new_ptr(current_module, "rpc_class");
     // interfaces.insert(rpc_class.codename(), rpc_class);
     // current_interface = &interfaces[rpc_class.codename()];
     current_module->insert("rpc_class", new_interface);

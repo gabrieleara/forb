@@ -16,7 +16,7 @@ namespace forbcc {
         /// This string buffer inserts the requested indentation whenever std::endl is reached.
         class code_stringbuf : public std::stringbuf {
             std::ostream &output;
-            int indentation = 0;
+            int          indentation = 0;
 
         public:
             /// Constructs a stringbuf for the given output stream

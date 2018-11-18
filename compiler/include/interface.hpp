@@ -7,17 +7,16 @@
 
 #include "entity.hpp"
 #include "module.hpp"
-#include "ordered_unique_list.hpp"
+#include "templates/ordered_unique_list.hpp"
+#include "templates/shareable.hpp"
 
 namespace forbcc {
     class method;
 
-    class module;
-
     class code_ostream;
 
     /// Defines an interface, which will be converted to stub and skeleton pairs upon generation
-    class interface : public entity, public ordered_unique_list<method> {
+    class interface : public entity, public shareable<interface>, public ordered_unique_list<method> {
     public:
 
         /* ********************************************** CONSTRUCTORS ********************************************** */

@@ -5,15 +5,16 @@
 #include <map>
 
 #include "type.hpp"
-#include "../module.hpp"
-#include "../ordered_unique_list.hpp"
+#include "module.hpp"
+#include "templates/ordered_unique_list.hpp"
+#include "templates/shareable.hpp"
 
 namespace forbcc {
     /// Forward declarations to be used within this class declaration
     class variable;
 
     /// Custom types are basically structures defined by the user that can be transferred using the library
-    class type_custom : public type, public ordered_unique_list<variable> {
+    class type_custom : public type, public shareable<type_custom>, public ordered_unique_list<variable> {
     public:
         /* ********************************************** CONSTRUCTORS ********************************************** */
 

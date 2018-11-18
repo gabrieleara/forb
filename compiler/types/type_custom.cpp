@@ -33,7 +33,7 @@ void forbcc::type_custom::print_definition(forbcc::code_ostream &out) const {
 
     out.increment_indentation();
 
-    for (const auto & it : list()) {
+    for (const auto &it : list()) {
         it.var_type()->print_var_marshal(out, "v." + it.name(), marshal::MARSHAL);
     }
 

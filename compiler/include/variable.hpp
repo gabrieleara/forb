@@ -3,13 +3,14 @@
 
 #include "entity.hpp"
 #include "types/type_custom.hpp"
+#include "templates/shareable.hpp"
 
 namespace forbcc {
     class code_ostream;
 
     /// Represents either an attribute of a forbcc::type_custom class or an automatic variable declared within a
     /// function
-    class variable : public entity {
+    class variable : public entity, public shareable<variable> {
         /// The type associated with the variable.
         std::shared_ptr<const type> _var_type;
 

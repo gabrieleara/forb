@@ -3,11 +3,12 @@
 
 #include <string>
 #include "type.hpp"
+#include "templates/shareable.hpp"
 
 namespace forbcc {
 
     /// Identifies an array of a given type, to be used in forbcc::method or in forbcc::type_custom definitions.
-    class type_array : public type {
+    class type_array : public type, public shareable<type_array> {
     public:
         /// The type of the elements of the array, can be any trivially copyable type.
         std::shared_ptr<const type> _item_type;
@@ -44,6 +45,12 @@ namespace forbcc {
         type_array &operator=(const type_array &) = default;
 
         /**************************************************************************************************************/
+
+        /// Does nothing, primitive types do not need to be declared.
+        void print_declaration(code_ostream &out __attribute__((unused))) const override {};
+
+        /// Does nothing, primitive types do not need to be defined.
+        void print_definition(code_ostream &out __attribute__((unused))) const override {};
 
         /// Returns the type of the items of the given array.
         std::shared_ptr<const type> item_type() const {

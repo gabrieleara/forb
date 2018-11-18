@@ -16,7 +16,7 @@
 inline void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::string &thename) const {
     out << _return_type->codename() << " " << thename << "(";
 
-    bool first = true;
+    bool                 first = true;
     for (const parameter &it : list()) {
         if (first) {
             first = false;
@@ -226,7 +226,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     out << name() << "(";
 
-    bool first = true;
+    bool            first = true;
     for (const auto &it : list()) {
         if (first) {
             first = false;

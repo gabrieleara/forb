@@ -16,7 +16,7 @@ namespace forbcc {
         SEND, RECV
     };
 
-    // Base class used to define primitive types, custom types (structures) and arrays
+    /// Base class used to define primitive types, custom types (structures) and arrays
     class type : public entity {
     public:
         /* ********************************************** CONSTRUCTORS ********************************************** */
@@ -43,12 +43,6 @@ namespace forbcc {
 
         /**************************************************************************************************************/
 
-        /// Prints the declaration of the given type, if required.
-        void print_declaration(code_ostream &out) const override;
-
-        /// Prints the definition of the given type, if required.
-        void print_definition(code_ostream &out) const override;
-
         /// Print the declaration of a variable of this type
         virtual void print_var_declaration(code_ostream &out, const std::string &var_name) const;
 
@@ -56,10 +50,12 @@ namespace forbcc {
         virtual void print_var_reference(code_ostream &out, const std::string &var_name) const;
 
         /// Print the actions needed to either marshal or unmarshal a variable of this type
-        virtual void print_var_marshal(code_ostream &out, const std::string &var_name, const marshal &do_undo) const;
+        virtual void print_var_marshal(code_ostream &out, const std::string &var_name,
+                                       const marshal &do_undo) const;
 
         /// Print the actions needed to either serialize or deserialize a variable of this type
-        virtual void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize &do_undo) const;
+        virtual void print_var_serialize(code_ostream &out, const std::string &var_name,
+                                         const serialize &do_undo) const;
     };
 
 } // namespace forbcc

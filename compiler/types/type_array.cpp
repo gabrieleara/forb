@@ -28,6 +28,7 @@ void forbcc::type_array::print_var_serialize(forbcc::code_ostream &out, const st
                                              const forbcc::serialize &do_undo) const {
 
     std::string action = (do_undo == serialize::SEND) ? "send" : "recv";
-    out << "datastream->" << action << "(" << var_name << ", sizeof(" << _item_type->name() << ") * " << length() << ");"
+    out << "datastream->" << action << "(" << var_name << ", sizeof(" << _item_type->name() << ") * " << length()
+        << ");"
         << std::endl;
 }

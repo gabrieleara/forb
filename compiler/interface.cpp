@@ -273,7 +273,7 @@ inline void forbcc::interface::print_stub_methods(forbcc::code_ostream &output) 
 
 inline void forbcc::interface::print_skeleton_method(forbcc::code_ostream &output) const {
     // Used to align the printed code to opened parenthesis
-    size_t blanks_size = codename_skeleton().length() + 20;
+    size_t      blanks_size = codename_skeleton().length() + 20;
     std::string blanks(blanks_size, ' ');
 
     output << "/// This method dispatches the call to the right virtual method, which must be redefined in a subclass."
@@ -288,7 +288,7 @@ inline void forbcc::interface::print_skeleton_method(forbcc::code_ostream &outpu
            << "// datastream is the one used to exchange actual data" << std::endl
            << "// They might be the same stream" << std::endl;
 
-    output << "switch((" << name_enum() << ") code) {" << std::endl;
+    output << "switch ((" << name_enum() << ") code) {" << std::endl;
     output.increment_indentation();
 
     for (const auto &it : list()) {

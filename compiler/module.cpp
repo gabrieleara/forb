@@ -8,7 +8,7 @@
 // For documentation, see corresponding header file
 
 /// The global module has no parent module
-const std::shared_ptr<forbcc::module> forbcc::module::global_module = std::make_shared<forbcc::module>(nullptr);
+const std::shared_ptr<forbcc::module> forbcc::module::global_module = forbcc::module::new_ptr(nullptr);
 
 void forbcc::module::print_declaration(forbcc::code_ostream &out) const {
     if (name().length()) {
