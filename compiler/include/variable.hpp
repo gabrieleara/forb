@@ -2,7 +2,7 @@
 #define FORBCC_VARIABLE_H
 
 #include "entity.hpp"
-#include "types/type_custom.hpp"
+#include "types/type.hpp"
 #include "templates/shareable.hpp"
 
 namespace forbcc {
@@ -43,6 +43,7 @@ namespace forbcc {
 
         /**************************************************************************************************************/
 
+        /// Returns a pointer to the type of the variable
         const std::shared_ptr<const type> &var_type() const {
             return _var_type;
         };

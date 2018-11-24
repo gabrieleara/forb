@@ -2,14 +2,11 @@
 // Created by gabriele on 14/11/18.
 //
 
-// TODO: remove some includes
-#include <forbcc.hpp>
 #include "method.hpp"
 
 #include "code_ostream.hpp"
-#include "variable.hpp"
-#include "parameter.hpp"
-#include "types/type.hpp"
+
+#include <algorithm>
 
 // For documentation, see corresponding header file
 
@@ -122,7 +119,7 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
         out << "// Finally read result" << std::endl;
 
         std::string resvariable_name = "resvalue";
-        while (is_contained(resvariable_name)) {
+        while (contains(resvariable_name)) {
             // The variable name is already used by a parameter! Keep going
             resvariable_name = "_" + resvariable_name; // NOLINT
         }
@@ -192,7 +189,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     out << "// Send over callstream an ACK" << std::endl;
 
     std::string rescode_name = "rescode";
-    while (is_contained(rescode_name)) {
+    while (contains(rescode_name)) {
         // The variable name is already used by a parameter! Keep going
         rescode_name = "_" + rescode_name; // NOLINT
     }
@@ -213,7 +210,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     if (_return_type->name() != "void") {
         std::string resvariable_name = "resvalue";
-        while (is_contained(resvariable_name)) {
+        while (contains(resvariable_name)) {
             // The variable name is already used by a parameter! Keep going
             resvariable_name = "_" + resvariable_name; // NOLINT
         }
@@ -271,7 +268,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
         out.increment_indentation();
 
         std::string resvariable_name = "resvalue";
-        while (is_contained(resvariable_name)) {
+        while (contains(resvariable_name)) {
             // The variable name is already used by a parameter! Keep going
             resvariable_name = "_" + resvariable_name; // NOLINT
         }
@@ -298,7 +295,10 @@ std::string forbcc::method::id() const {
         oss << "void";
     } else {
         for (const auto &param : list()) {
-            const std::string var_type_name = param.var().var_type()->name();
+            std::string var_type_name = param.var().var_type()->codename();
+
+            std::replace(var_type_name.begin(), var_type_name.end(), ':', '_');
+
             oss << var_type_name.length() << var_type_name;
 
             oss << param.var().name().length() << param.var().name();
@@ -307,3 +307,5 @@ std::string forbcc::method::id() const {
 
     return oss.str();
 }
+
+// TODO: datastream and callstream are reserved names

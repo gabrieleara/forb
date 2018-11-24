@@ -9,9 +9,9 @@
 
 namespace example {
     struct structure {
-        long a1;
+        long  a1;
         short a2;
-        char a3[10];
+        char  a3[10];
     };
 
     class rpc_class;

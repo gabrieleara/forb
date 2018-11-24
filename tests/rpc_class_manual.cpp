@@ -10,7 +10,7 @@
 // NOTICE: this is used for testing the library before installation, to use the library after installation please use
 // #include <forb/forb.hpp>
 #include <forb/forb.hpp> // "forb.hpp"
-#include "rpc_class_manual_example.hpp"
+#include "rpc_class_manual.hpp"
 
 using ssocket = forb::streams::socket;
 using shared_memory = forb::streams::shared_memory;
@@ -27,12 +27,12 @@ enum class rpc_class_method_codes : forb::call_id_t {
 /* ******************************* RPC_CLASS ******************************** */
 
 // Initialize static attributes for factory
-examples::rpc_class             examples::rpc_class::_factory{};
-examples::rpc_class::init_class examples::rpc_class::_init{};
+example::rpc_class             example::rpc_class::_factory{};
+example::rpc_class::init_class example::rpc_class::_init{};
 
 
 // Custom methods - automatically generated
-int examples::rpc_class::sum_ints(int a, int b) {
+int example::rpc_class::sum_ints(int a, int b) {
     this->init_call(forb::call_id_t_cast(rpc_class_method_codes::SUM_INTS));
 
     // Objects serialization
@@ -63,18 +63,18 @@ int examples::rpc_class::sum_ints(int a, int b) {
 
 
 // Match method, needed by the factory
-bool examples::rpc_class::_match(const std::string &type) const {
-    return type == "examples::rpc_class";
+bool example::rpc_class::_match(const std::string &type) const {
+    return type == "example::rpc_class";
 }
 
 // Factory method
-forb::base_stub *examples::rpc_class::_create_empty() const {
+forb::base_stub *example::rpc_class::_create_empty() const {
     return new rpc_class{};
 }
 
 
 // Static methods used to narrow pointers
-examples::rpc_class_ptr examples::rpc_class::_narrow(forb::remote_var &&reference) {
+example::rpc_class_ptr example::rpc_class::_narrow(forb::remote_var &&reference) {
     rpc_class *ptr = dynamic_cast<rpc_class *>(reference.get());
 
     if (ptr == nullptr) {
@@ -86,7 +86,7 @@ examples::rpc_class_ptr examples::rpc_class::_narrow(forb::remote_var &&referenc
     }
 }
 
-examples::rpc_class_ptr examples::rpc_class::_narrow(forb::remote_ptr &reference) {
+example::rpc_class_ptr example::rpc_class::_narrow(forb::remote_ptr &reference) {
     rpc_class *ptr = dynamic_cast<rpc_class *>(reference.get());
 
     if (ptr == nullptr) {
@@ -97,7 +97,7 @@ examples::rpc_class_ptr examples::rpc_class::_narrow(forb::remote_ptr &reference
     }
 }
 
-examples::rpc_class_var examples::rpc_class::_assign(forb::remote_var &&reference) {
+example::rpc_class_var example::rpc_class::_assign(forb::remote_var &&reference) {
     rpc_class *ptr = dynamic_cast<rpc_class *>(reference.get());
 
     if (ptr == nullptr) {
@@ -113,7 +113,7 @@ examples::rpc_class_var examples::rpc_class::_assign(forb::remote_var &&referenc
 
 /* *************************** RPC_CLASS_SKELETON *************************** */
 
-void examples::rpc_class_skeleton::execute_call(forb::call_id_t code,
+void example::rpc_class_skeleton::execute_call(forb::call_id_t code,
                                                 forb::streams::stream *callstream,
                                                 forb::streams::stream *datastream) {
     // callstream is the stream used by the RPC protocol and
@@ -157,6 +157,6 @@ void examples::rpc_class_skeleton::execute_call(forb::call_id_t code,
 
 // The following class is NOT automatically generated of course
 
-int examples::rpc_class_impl::sum_ints(int a, int b) {
+int example::rpc_class_impl::sum_ints(int a, int b) {
     return a + b;
 }

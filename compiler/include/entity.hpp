@@ -18,7 +18,7 @@ namespace forbcc {
     class entity {
     private:
         /// Pointer to the entity containing the current one.
-        std::shared_ptr<const entity> _parent;
+        std::shared_ptr<entity> _parent;
 
         /// Name of the current entity
         std::string _name;
@@ -31,7 +31,7 @@ namespace forbcc {
 
     public:
         /// Constructs an entity within a given parent
-        entity(const std::shared_ptr<const entity> &parent, const std::string &name)
+        entity(const std::shared_ptr<entity> &parent, const std::string &name)
                 : _parent(parent),
                   _name(name) {};
 
@@ -59,7 +59,7 @@ namespace forbcc {
     public:
 
         /// Returns the parent of the given entity
-        std::shared_ptr<const entity> parent() const {
+        std::shared_ptr<entity> parent() const {
             return _parent;
         };
 

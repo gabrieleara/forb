@@ -104,7 +104,7 @@ std::vector<base_stub *> &base_stub::_protos() {
     return _prototypes;
 }
 
-base_stub* base_stub::_create(const std::string &type) {
+base_stub *base_stub::_create(const std::string &type) {
     for (auto p : base_stub::_protos()) {
         if (p->_match(type)) {
             return p->_create_empty();

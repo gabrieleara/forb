@@ -9,17 +9,16 @@
 #include "templates/ordered_unique_list.hpp"
 #include "templates/shareable.hpp"
 
-namespace forbcc {
-    /// Forward declarations to be used within this class declaration
-    class variable;
+#include "variable.hpp"
 
+namespace forbcc {
     /// Custom types are basically structures defined by the user that can be transferred using the library
     class type_custom : public type, public shareable<type_custom>, public ordered_unique_list<variable> {
     public:
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Using constructors from superclass
-        type_custom(const std::shared_ptr<const module> &parent, std::string name) : type(parent, name) {};
+        type_custom(const std::shared_ptr<module> &parent, std::string name) : type(parent, name) {};
 
         /**************************************************************************************************************/
 

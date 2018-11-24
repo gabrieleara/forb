@@ -35,8 +35,9 @@ namespace forb {
 
     public:
         // Rule of the five
-        base_stub(const base_stub& other) = delete;
-        base_stub(base_stub&& other) = default;
+        base_stub(const base_stub &other) = delete;
+
+        base_stub(base_stub &&other) = default;
 
     protected:
         stream *rpcstream;

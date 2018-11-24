@@ -25,9 +25,6 @@ add_subdirectory(compiler)
 add_subdirectory(library)
 add_subdirectory(tests)
 
-
-# Doxygen stuff
-
 # Documentation will be built only in release mode
 if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
     # We specify that we want to build the docs

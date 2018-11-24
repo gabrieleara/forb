@@ -9,6 +9,8 @@
 
 // For documentation, see corresponding header file
 
+forbcc::type_array::type_array_list forbcc::type_array::arrays;
+
 void forbcc::type_array::print_var_declaration(forbcc::code_ostream &output, const std::string &var_name) const {
     output << _item_type->codename() << " " << var_name << "[" << _length << "]";
 }

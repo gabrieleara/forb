@@ -2,6 +2,7 @@
 #define FORBCC_ARRAY_TYPE_H
 
 #include <string>
+#include <algorithm>
 #include "type.hpp"
 #include "templates/shareable.hpp"
 
@@ -14,13 +15,19 @@ namespace forbcc {
         std::shared_ptr<const type> _item_type;
 
         /// The length of the array
-        int _length;
+        size_t _length;
+
+        /// A list of array pointers
+        using type_array_list = ordered_unique_list<std::shared_ptr<const type_array>>;
+
+        /// The list of all known arrays
+        static type_array_list arrays;
 
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Any trivially copyable type can be accepted as an array item type
-        type_array(const std::shared_ptr<const type> &item_type, const int length)
-                : type(nullptr, "forb_array_" + item_type->codename()),
+        type_array(const std::shared_ptr<const type> &item_type, const size_t length)
+                : type(nullptr, to_identifier(item_type, length)),
                   _item_type(item_type),
                   _length(length) {};
 
@@ -28,6 +35,13 @@ namespace forbcc {
         type_array(const type_array *item_type, const int length) = delete;
 
         /**************************************************************************************************************/
+
+        static std::string to_identifier(const std::shared_ptr<const type> &item_type, const size_t length) {
+            // TODO: could this lead to conflitcs?
+            std::string codename = item_type->codename();
+            std::replace(codename.begin(), codename.end(), ':', '_');
+            return "_Forb_Array_" + item_type->codename() + "_D_" + std::to_string(length) + "_";
+        }
 
         /// This class is virtual, so it requires a virtual destructor
         ~type_array() override = default;
@@ -58,7 +72,7 @@ namespace forbcc {
         }
 
         /// Returns the length of the array
-        int length() const {
+        size_t length() const {
             return _length;
         };
 

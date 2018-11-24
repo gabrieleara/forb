@@ -4,29 +4,6 @@
 #include "templates/ordered_unique_list.hpp"
 
 namespace forbcc {
-
-    const type_primitive::ptr_const_t _Void  = type_primitive::new_ptr_const("void", "void");
-    const type_primitive::ptr_const_t _Char  = type_primitive::new_ptr_const("char", "char");
-    const type_primitive::ptr_const_t _Int   = type_primitive::new_ptr_const("int", "int");
-    const type_primitive::ptr_const_t _Short = type_primitive::new_ptr_const("short", "short");
-    const type_primitive::ptr_const_t _Long  = type_primitive::new_ptr_const("long", "long");
-
-    // TODO: change primitive list
-    using type_primitive_list = ordered_unique_list<std::shared_ptr<const type_primitive>>;
-    // using type_custom_list = ordered_unique_list<type_custom>;
-    using type_array_list = ordered_unique_list<std::shared_ptr<const type_array>>;
-
-    // using interface_list = ordered_unique_list<interface>;
-    // using module_list = ordered_unique_list<const module*>;
-
-    type_primitive_list primitives;
-    // type_custom_list customs;
-    type_array_list     arrays;
-
-    // interface_list interfaces;
-    // module_list modules;
-
-
 } // namespace forbcc
 
 using namespace std;
@@ -38,11 +15,11 @@ int main() {
 
     // START INITIALIZATION CODE
 
-    primitives.insert("void", forbcc::_Void);
-    primitives.insert("char", forbcc::_Char);
-    primitives.insert("int", forbcc::_Int);
-    primitives.insert("short", forbcc::_Short);
-    primitives.insert("long", forbcc::_Long);
+    type_primitive::known_types.insert("void", forbcc::_Void);
+    type_primitive::known_types.insert("char", forbcc::_Char);
+    type_primitive::known_types.insert("int", forbcc::_Int);
+    type_primitive::known_types.insert("short", forbcc::_Short);
+    type_primitive::known_types.insert("long", forbcc::_Long);
 
     std::shared_ptr<module>      current_module    = forbcc::module::global_module;
     std::shared_ptr<type_custom> current_type      = nullptr;
@@ -74,16 +51,16 @@ int main() {
 
     // CHECKED OK
     // Arrays should be put in an array list, to avoid allocating multiple similar arrays
-    type_array::ptr_t new_array = type_array::new_ptr(primitives["char"], 10);
+    type_array::ptr_t new_array = type_array::new_ptr(type_primitive::known_types["char"], 10);
     arrays.insert(new_array->codename(), new_array);
     current_array = new_array;
 
     // Arrays do not need to be added to modules of course
 
     // Adding attributes to current_type is easy
-    forbcc::variable attr1{primitives["long"], "a1"};
+    forbcc::variable attr1{type_primitive::known_types["long"], "a1"};
     current_type->insert(attr1.name(), attr1);
-    forbcc::variable attr2{primitives["short"], "a2"};
+    forbcc::variable attr2{type_primitive::known_types["short"], "a2"};
     current_type->insert(attr2.name(), attr2);
     forbcc::variable attr3{current_array, "a3"};
     current_type->insert(attr3.name(), attr3);
@@ -95,10 +72,10 @@ int main() {
     current_module->insert("rpc_class", new_interface);
     current_interface = new_interface;
 
-    forbcc::method m{current_interface, "sum", primitives["int"]};
+    forbcc::method m{current_interface, "sum", type_primitive::known_types["int"]};
 
-    forbcc::parameter p1{forbcc::direction::IN, primitives["int"], "a"};
-    forbcc::parameter p2{forbcc::direction::IN, primitives["int"], "b"};
+    forbcc::parameter p1{forbcc::direction::IN, type_primitive::known_types["int"], "a"};
+    forbcc::parameter p2{forbcc::direction::IN, type_primitive::known_types["int"], "b"};
     forbcc::parameter p3{forbcc::direction::OUT, current_type, "c"};
 
     m.insert(p1.var().name(), p1);

@@ -27,9 +27,9 @@ namespace forbcc {
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Constructs a parameter
-        parameter(const direction &dir, const std::shared_ptr<const type> &var_type, const std::string &name)
+        parameter(const direction &dir, const variable &var)
                 : _direction(dir),
-                  _variable(var_type, name) {};
+                  _variable(var) {};
 
         /**************************************************************************************************************/
 

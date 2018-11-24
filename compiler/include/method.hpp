@@ -15,8 +15,6 @@ namespace forbcc {
     // Forward declarations
     class code_ostream;
 
-    class type;
-
     /// Defines a method of a forbcc::interface, which can have an arbitrary number of input, output or inout
     /// parameters.
     class method : public entity, public ordered_unique_list<parameter> {
@@ -30,7 +28,7 @@ namespace forbcc {
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Constructs a new method for the given parent interface with a name and a return type
-        method(const std::shared_ptr<const interface> &parent, const std::string &name,
+        method(const std::shared_ptr<interface> &parent, const std::string &name,
                const std::shared_ptr<const type> &return_type)
                 : entity(parent, name),
                   _return_type(return_type) {};

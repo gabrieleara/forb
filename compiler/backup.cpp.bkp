@@ -1,0 +1,258 @@
+//
+// Created by gabriele on 19/11/18.
+//
+
+#ifndef FORBCC_PARSER_H
+#define FORBCC_PARSER_H
+
+#include <string>
+
+namespace forbcc {
+
+    enum class keywords_idx_t {
+        MODULE, TYPE, INTERFACE, IN, OUT, INOUT, NUM_KEYWORDS
+    };
+
+    class parser {
+        std::string filename;
+
+        // Probably I don't need a stack if I do it recursively
+        // std::stack<module::ptr_t> modules_stack;
+        // module::ptr_t             current_module = nullptr;
+
+        static const std::string keywords[static_cast<int>(keywords_idx_t::NUM_KEYWORDS)];
+
+    public:
+        explicit parser(const std::string &filename) : filename(filename) {};
+
+        void parseFile() {
+            std::ifstream file{filename};
+
+            module::ptr_t new_module = module::global_module;
+
+            parse_within_module(new_module, file);
+        };
+
+    private:
+        int _i(keywords_idx_t keyword) {
+            return static_cast<int>(keyword);
+        }
+
+        bool get_next_symbol(std::ifstream &file, std::string &str) {
+            // Skips comments
+            while(file) {
+                file >> str;
+
+                if (str.find("//") == 0) {
+                    // Skip until next newline, it's a comment
+                    file.ignore(std::numeric_limits<std::streamsize>::max(), file.widen('\n'));
+
+                } else if (str.find("/*") == 0) {
+                    // Skip until the "*/" characters are found
+
+                    bool comment_ended = false;
+                    while (!comment_ended && file) {
+                        file.ignore(std::numeric_limits<std::streamsize>::max(), file.widen('*'));
+
+                        char c;
+                        if (file && file >> c && c == '/') {
+                            comment_ended = true;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        void get_expected_symbol(std::ifstream & file, std::string &str) {
+            if (!get_next_symbol(file, str))
+                throw 17;
+        };
+
+        std::string extract(std::string &name, char symbol) {
+            std::string::size_type index;
+
+            index = name.find(symbol);
+
+            if (index == std::string::npos) {
+                return "";
+            } else {
+                return name.substr(index);
+            }
+        };
+
+        void skip_expected_symbol(std::ifstream &file, std::string &name, char symbol) {
+            std::string extracted = extract(name, symbol);
+
+            std::string expected_string{symbol};
+
+            if (extracted == "") {
+                get_expected_symbol(file, extracted);
+            }
+
+            if (extracted != expected_string)
+                throw 15;
+        };
+
+        void parse_within_module(module::ptr_t current_module, std::ifstream &file) {
+            std::string input_str;
+
+            while (get_next_symbol(file, input_str)) {
+                // Expecting either a "module", "type" or "interface" keyword
+                if (input_str == keywords[_i(keywords_idx_t::MODULE)]) {
+                    // A new module is found, let's read its name:
+                    std::string module_name;
+
+                    get_expected_symbol(file, module_name);
+
+                    skip_expected_symbol(file, module_name, '{');
+
+                    // TODO: if the module is one already known juts pick it up
+                    module::ptr_t new_module = current_module->find_module(module_name);
+
+                    if (new_module == nullptr) {
+                        new_module = module::new_ptr(current_module, module_name);
+                    }
+
+                    parse_within_module(new_module, file);
+                } else if (input_str == keywords[_i(keywords_idx_t::TYPE)]) {
+                    std::string type_name;
+
+                    get_expected_symbol(file, type_name);
+
+                    skip_expected_symbol(file, type_name, '{');
+
+                    if (current_module->is_contained(type_name))
+                        throw 27;
+
+                    type_custom::ptr_t new_type = type_custom::new_ptr(current_module, type_name);
+
+                    parse_within_type(current_module, new_type, file);
+
+                    current_module->insert(type_name, new_type);
+                } else if (input_str == keywords[_i(keywords_idx_t::INTERFACE)]) {
+
+                } else if (input_str == "}") {
+                    if (current_module == module::global_module)
+                        throw 17;
+
+                    return;
+                } else {
+                    throw 42;
+                }
+
+            }
+        };
+
+        void parse_within_type(module::ptr_t current_module, type_custom::ptr_t current_type, std::ifstream &file) {
+            std::string input_str;
+
+            while (get_next_symbol(file, input_str)) {
+                // Expecting a known type name, either local or global
+
+                std::shared_ptr<const type> var_type = nullptr;
+
+                if (type_primitive::known_types.is_contained(input_str)) {
+                    // It is a primitive type
+                    var_type = type_primitive::known_types[input_str];
+                } else {
+                    // It is a custom type, which shall be either defined within this module or in another module
+                    // visible from this module
+                    var_type = current_module->find_type(input_str);
+                }
+
+                // If at this point var_tupe equals nullptr, the type is unknown
+                if (var_type == nullptr)
+                    throw 57;
+
+                // Now I need to get the variable's name
+                std::string var_name;
+
+                get_expected_symbol(file, var_name);
+
+                // TODO: change for arrays
+                skip_expected_symbol(file, var_name, ';');
+
+                // TODO: check whether var_name is a good name and whether it already contains the suffix or not
+
+                // std::string suffix;
+                // get_expected_symbol(file, suffix);
+
+                // if(suffix == ";") {
+                    // Ok, the variable was created correctly
+
+                    variable new_variable{var_type, var_name};
+
+                    current_type->insert(var_name, new_variable);
+                //} if (suffix.find("[") == 0) {
+                    // It is an array!
+                    // TODO: read array stuff
+                //}
+            }
+
+
+/*
+
+                // Expecting either a "module", "type" or "interface" keyword
+                if (input_str == keywords[_i(keywords_idx_t::MODULE)]) {
+                    // A new module is found, let's read its name:
+                    std::string module_name;
+
+                    get_expected_symbol(file, module_name);
+
+                    // TODO: check whether module_name is a valid name
+
+                    get_expected_symbol(file, input_str);
+
+                    if (input_str != "{") {
+                        throw 15;
+                    }
+
+                    module::ptr_t new_module = module::new_ptr(current_module, module_name);
+
+                    parse_within_module(new_module, file);
+                } else if (input_str == keywords[_i(keywords_idx_t::TYPE)]) {
+                    std::string type_name;
+
+                    get_expected_symbol(file, type_name);
+
+                    if (current_module->is_contained(type_name))
+                        throw 27;
+
+                    get_expected_symbol(file, input_str);
+
+                    if (input_str != "{") {
+                        throw 15;
+                    }
+
+                    type_custom::ptr_t new_type = type_custom::new_ptr(current_module, type_name);
+
+                    parse_within_type(current_module, new_type, file);
+
+                    current_module->insert(type_name, new_type);
+                } else if (input_str == keywords[_i(keywords_idx_t::INTERFACE)]) {
+
+                } else if (input_str == "}") {
+                    if (current_module == module::global_module)
+                        throw 17;
+
+                    return;
+                } else {
+                    throw 42;
+                }
+
+            }
+*/
+
+        }
+
+
+    };
+
+}
+
+
+#endif //FORBCC_PARSER_H

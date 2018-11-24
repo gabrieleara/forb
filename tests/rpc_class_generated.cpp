@@ -11,7 +11,7 @@ using stream = forb::streams::stream;
 
 namespace forb {
     namespace streams {
-        template <>
+        template<>
         example::structure marshal<example::structure>(example::structure v) {
             v.a1 = forb::streams::marshal(v.a1);
             v.a2 = forb::streams::marshal(v.a2);
@@ -126,10 +126,10 @@ void example::rpc_class_skeleton::execute_call(forb::call_id_t code,
     // callstream is the stream used by the RPC protocol and
     // datastream is the one used to exchange actual data
     // They might be the same stream
-    switch((rpc_class_method_codes) code) {
+    switch ((rpc_class_method_codes) code) {
         case rpc_class_method_codes::_FsumE3int1a3int1b9structure1c:
-            int a;
-            int b;
+            int                a;
+            int                b;
             example::structure c;
 
             datastream->recv(&a, sizeof(a));

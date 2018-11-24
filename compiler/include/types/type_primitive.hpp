@@ -5,11 +5,15 @@
 #include "module.hpp"
 #include "templates/shareable.hpp"
 
+// TODO: document this
 namespace forbcc {
     class type_primitive : public type, public shareable<type_primitive> {
         const std::string actual_type;
 
     public:
+        using type_primitive_list = ordered_unique_list<ptr_const_t>;
+        static type_primitive_list known_types;
+
         /// Does nothing, primitive types do not need to be declared.
         void print_declaration(code_ostream &out __attribute__((unused))) const override {};
 
@@ -24,6 +28,14 @@ namespace forbcc {
         std::string codename() const final {
             return actual_type;
         };
+
+    private:
+        class static_initializer {
+        public:
+            static_initializer();
+        };
+
+        static static_initializer _init;
     };
 
 } // namespace forbcc

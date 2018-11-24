@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <type_traits>
 
 namespace forbcc {
 
@@ -17,9 +18,11 @@ namespace forbcc {
         using set_t = std::map<std::string, int>;
         using list_t = std::vector<T>;
 
-        // TODO: do I need indexing now?
+        using const_T = typename std::add_const<T>::type;
+
         /// The set is used to store the keys of each element, each paired with the index of the stored element within
         /// the list.
+        /// The index of the element within the list is useful when retrieving objects later.
         set_t _set;
 
         /// The list contains the insertered elements in inserted order.
@@ -45,7 +48,7 @@ namespace forbcc {
         };
 
         /// Returns true if the given key is present within the set of keys.
-        bool is_contained(std::string key) const {
+        bool contains(std::string key) const {
             return _set.find(key) != _set.end();
         };
 
@@ -54,6 +57,12 @@ namespace forbcc {
         T &operator[](std::string key) {
             return _list[_set.at(key)];
         };
+
+        const_T &operator[](std::string key) const {
+            return _list[_set.at(key)];
+        };
+
+
     };
 
 } // namespace forbcc

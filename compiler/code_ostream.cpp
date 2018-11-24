@@ -11,9 +11,9 @@ void forbcc::code_ostream::code_stringbuf::putOutput() {
     std::string content = str();
 
     // Print indentation if the line is not empty
-    // FIXME: known bug, it prints indentation even if the content is an empty line.
+    // BUG: known bug, it prints indentation even if the content is an empty line.
     if (content.length() > 0) {
-        // TODO: Could be improved by using the fill constructor of the std::string class
+        // NOTE: Could be improved by using the fill constructor of the std::string class
         for (int i = 0; i < indentation; ++i) {
             output << "    "; // Each indentation is four spaces
         }

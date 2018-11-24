@@ -47,7 +47,6 @@ namespace forb {
 
         // incoming_calls = forb::streams::socket::make_server(port, queuesize);
 
-        // TODO: rule of the 5
         virtual ~base_skeleton() {};
 
     private:

@@ -1,8 +1,6 @@
 #ifndef __forb_stream_hpp__
 #define __forb_stream_hpp__
 
-#include <type_traits> // TODO: only for weird stuff
-
 #include <sys/types.h>
 #include <cstring>
 #include <byteswap.h>
@@ -13,7 +11,7 @@
 namespace forb {
     namespace streams {
 
-        // TODO: custom types declared in FORB IDL Files shall define a partial specialization of this template
+        /// Custom types declared in FORB IDL files shall define a partial specialization of this template
         template<typename T>
         T marshal(T v) {
             static_assert(
@@ -41,7 +39,6 @@ namespace forb {
             return marshal(v);
         }
 
-        // TODO: this template should be tested
         template<typename T>
         void marshal(T v[], size_t N) {
             for (size_t idx = 0; idx < N; ++idx) {
@@ -60,7 +57,7 @@ namespace forb {
 
             enum class type : call_id_t {
                 SOCKET = 0,
-                SHMEM = 1 << (std::numeric_limits<call_id_t>::digits - 1)
+                SHMEM  = 1 << (std::numeric_limits<call_id_t>::digits - 1)
             };
 
             virtual ~stream() noexcept {};

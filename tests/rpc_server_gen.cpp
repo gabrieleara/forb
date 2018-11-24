@@ -18,9 +18,9 @@ public:
 
 int rpc_class_impl::sum(int a, int b, example::structure &c) {
     std::string result = "Hello World!";
-    strncpy(c.a3, result.c_str(), result.length()+1);
-    c.a1 = a*2;
-    c.a2 = b*3;
+    strncpy(c.a3, result.c_str(), result.length() + 1);
+    c.a1 = a * 2;
+    c.a2 = b * 3;
 
     return a + b;
 }

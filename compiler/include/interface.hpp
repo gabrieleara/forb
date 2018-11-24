@@ -22,7 +22,7 @@ namespace forbcc {
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Using constructors from superclass
-        interface(const std::shared_ptr<const module> &parent, const std::string &name) : entity(parent, name) {};
+        interface(const std::shared_ptr<module> &parent, const std::string &name) : entity(parent, name) {};
 
         /**************************************************************************************************************/
 
@@ -94,7 +94,6 @@ namespace forbcc {
             return name() + "_skeleton";
         };
 
-        // TODO: change because conflicts are possible when multiple classes in different namespaces have the same name
         /// Returns the name of the enum class used to dispatch method calls
         std::string name_enum() const {
             return name() + "_method_codes";

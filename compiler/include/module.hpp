@@ -13,6 +13,8 @@
 
 namespace forbcc {
 
+    class type_custom;
+
     /// Represents a module, which basically is a namespace, so it's a collection of other entities, which can be either
     /// other modules, custom types or interfaces
     class module : public entity, public shareable<module>, public ordered_unique_list<std::shared_ptr<entity>> {
@@ -24,7 +26,7 @@ namespace forbcc {
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Using constructor from superclass
-        module(const std::shared_ptr<const entity> &parent, const std::string &name) : entity(parent, name) {};
+        module(const std::shared_ptr<entity> &parent, const std::string &name) : entity(parent, name) {};
 
         /// If parent module is nullptr, the created module is equivalent to the global namespace.
         /// However, this should only be called to actually create the global namespace, defined as a static property
@@ -56,6 +58,17 @@ namespace forbcc {
 
         /// Prints module definition (should be called within a source file)
         void print_definition(code_ostream &out) const override;
+
+        std::shared_ptr<module> find_module(const std::string &name);
+
+        std::shared_ptr<type_custom> find_type(const std::string &name);
+
+    protected:
+        /// Finds a forbcc::type_custom pointer which corresponds to the name given in input.
+        /// The name may be the simple name of a type visible from within this module or it may be
+        /// the name of a type visible from this module (defined in an upper module).
+        std::shared_ptr<entity> find(const std::string &name);
+
     };
 
 

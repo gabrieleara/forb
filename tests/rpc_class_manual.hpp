@@ -9,7 +9,7 @@
 
 #include <forb/forb.hpp> // "forb.hpp"
 
-namespace examples {
+namespace example {
 
     class rpc_class;
 
@@ -81,7 +81,7 @@ namespace examples {
     };
 
 
-} // forb::examples
+} // forb::example
 
 
 #endif //LIBFORB_RPC_CLASS_EXAMPLE_STUB_HPP

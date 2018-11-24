@@ -22,7 +22,7 @@ namespace forbcc {
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
         /// Using constructors from superclass
-        type(const std::shared_ptr<const module> &parent, const std::string &name) : entity(parent, name) {};
+        type(const std::shared_ptr<module> &parent, const std::string &name) : entity(parent, name) {};
 
         /**************************************************************************************************************/
 

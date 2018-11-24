@@ -1,0 +1,37 @@
+module ExampleNS {
+    // This is a comment until the endline
+
+    /*
+     * This is a multi
+     * line comment.
+     */
+
+    /*
+     * Next comment is used only to test whether comments skipping algorithm works in strange cases
+     */
+    //
+
+    type TypeName {
+        int     attr1;
+        long    attr2;
+        char    attr3[50];
+    }
+
+    interface InterfaceName {
+        int methodName(in int a, in TypeName b, out long c, out char d[50]);
+        void methodName2(inout TypeName b);
+    }
+
+    module innerNS {
+        type Type2 {
+            TypeName parent;
+            int      attr4;
+        }
+    }
+}
+
+module secondNS {
+    interface MyInterface {
+        void methodName(in int a, in ExampleNS::TypeName b, in char d[50]);
+    }
+}
