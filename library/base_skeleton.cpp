@@ -2,8 +2,8 @@
 // Created by gabriele on 04/11/18.
 //
 
-#include <stream/shared_memory.hpp>
-#include "base_skeleton.hpp"
+#include <forb/stream/shared_memory.hpp>
+#include "forb/base_skeleton.hpp"
 
 using base_skeleton = forb::base_skeleton;
 

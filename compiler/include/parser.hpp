@@ -10,10 +10,12 @@
 namespace forbcc {
 
     enum class keywords_idx_t {
-        MODULE, TYPE, INTERFACE, IN, OUT, INOUT, NUM_KEYWORDS
+        MODULE, STRUCT, INTERFACE, NUM_KEYWORDS
     };
 
     extern const std::string keywords[static_cast<int>(keywords_idx_t::NUM_KEYWORDS)];
+    extern const std::string direction_keywords[3];
+
 
     class parser {
         std::string filename;

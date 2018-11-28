@@ -3,6 +3,8 @@
 
 #include <string>
 #include <algorithm>
+#include <cassert>
+
 #include "type.hpp"
 #include "templates/shareable.hpp"
 
@@ -10,38 +12,57 @@ namespace forbcc {
 
     /// Identifies an array of a given type, to be used in forbcc::method or in forbcc::type_custom definitions.
     class type_array : public type, public shareable<type_array> {
+
+        /* ************************************************* ALIAS ************************************************** */
     public:
+        /// The type of the length attribute (which is a signed type, but values less than zero are considered invalid)
+        using length_t = long;
+
+        /* *********************************************** ATTRIBUTES *********************************************** */
+    private:
         /// The type of the elements of the array, can be any trivially copyable type.
         std::shared_ptr<const type> _item_type;
 
         /// The length of the array
-        size_t _length;
+        length_t _length;
 
-        /// A list of array pointers
+        /* ************************************************* STATIC ************************************************* */
+    public:
+        /// The type of the global list of all known type_array pointers.
         using type_array_list = ordered_unique_list<std::shared_ptr<const type_array>>;
 
-        /// The list of all known arrays
+        /// The list of all known arrays.
+        /// Basically it's a dictionary of all known array types, to avoid re-declaration of already-defined types.
+        /// Each type is characterized both by its item type and its length.
         static type_array_list arrays;
 
-        /* ********************************************** CONSTRUCTORS ********************************************** */
+        /// Converts a pair of item_type and length to an unique identifier, to be used when storing known array types.
+        static std::string to_identifier(const std::shared_ptr<const type> &item_type, const length_t length) {
+            // TODO: could this lead to conflitcs?
+            std::string codename = item_type->codename();
+            std::replace(codename.begin(), codename.end(), ':', '_');
+            return "_Forb_Array_" + item_type->codename() + "_D_" + std::to_string(length) + "_";
+        };
 
-        /// Any trivially copyable type can be accepted as an array item type
-        type_array(const std::shared_ptr<const type> &item_type, const size_t length)
+        /* ********************************************** CONSTRUCTORS ********************************************** */
+    public:
+        /// Empty array type, used to preallocate variables in arrays or to use later assignment operator
+        type_array() : type(), _item_type(nullptr), _length(0) {};
+
+        /// Any trivially copyable type can be accepted as an array item type (except another array_type), while
+        /// the length of the array must be a strictly positive integer.
+        /// NOTICE that no checking is done to ensure that item_type is not an array.
+        type_array(const std::shared_ptr<const type> &item_type, const length_t length)
                 : type(nullptr, to_identifier(item_type, length)),
                   _item_type(item_type),
-                  _length(length) {};
+                  _length(length) {
+            assert((length > 0 && "The length of the array must be strictly positive!"));
+        };
 
         /// Arrays of arrays cannot be declared
         type_array(const type_array *item_type, const int length) = delete;
 
         /**************************************************************************************************************/
-
-        static std::string to_identifier(const std::shared_ptr<const type> &item_type, const size_t length) {
-            // TODO: could this lead to conflitcs?
-            std::string codename = item_type->codename();
-            std::replace(codename.begin(), codename.end(), ':', '_');
-            return "_Forb_Array_" + item_type->codename() + "_D_" + std::to_string(length) + "_";
-        }
 
         /// This class is virtual, so it requires a virtual destructor
         ~type_array() override = default;
@@ -69,10 +90,10 @@ namespace forbcc {
         /// Returns the type of the items of the given array.
         std::shared_ptr<const type> item_type() const {
             return _item_type;
-        }
+        };
 
         /// Returns the length of the array
-        size_t length() const {
+        length_t length() const {
             return _length;
         };
 

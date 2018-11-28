@@ -11,6 +11,7 @@
 #include "templates/shareable.hpp"
 
 namespace forbcc {
+    // Forward declarations
     class method;
 
     class code_ostream;
@@ -20,6 +21,9 @@ namespace forbcc {
     public:
 
         /* ********************************************** CONSTRUCTORS ********************************************** */
+
+        /// Empty interface, used to preallocate variables in arrays or to use later assignment operator
+        interface() : entity() {};
 
         /// Using constructors from superclass
         interface(const std::shared_ptr<module> &parent, const std::string &name) : entity(parent, name) {};

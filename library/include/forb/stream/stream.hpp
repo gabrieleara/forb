@@ -6,7 +6,7 @@
 #include <byteswap.h>
 #include <limits>
 
-#include "../declarations.hpp"
+#include "forb/declarations.hpp"
 
 namespace forb {
     namespace streams {

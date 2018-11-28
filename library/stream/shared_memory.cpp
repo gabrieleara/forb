@@ -13,7 +13,7 @@
 
 #include <pthread.h> // mutexes and condition variables
 
-#include "stream/shared_memory.hpp"
+#include <forb/stream/shared_memory.hpp>
 
 using mutex_t = pthread_mutex_t;
 using condition_t = pthread_cond_t;

@@ -4,6 +4,8 @@
 
 #include "preprocessor.hpp"
 
+#include "file_utils.hpp"
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -14,75 +16,6 @@
 #include <cassert>
 
 // For documentation of forbcc::preprocessor class, see corresponding header file
-
-
-/// Creates a temporary file starting from the file name given as input using a specific syntax.
-/// The output file will be stored in /tmp and it will have a filename with the following syntax:
-/// basename_of_in_filename_without_extension.XXXXXXextension
-/// where XXXXXX is a randomly generated set of 6 letters. See man mkstemps for further details.
-inline std::string forbcc::make_temp(const std::string &in_filename, const std::string &extension) {
-    const char tmp[] = "/tmp/";
-    const char rnd[] = ".XXXXXX";
-
-    const std::string::size_type tmp_length = ::strlen(tmp);
-    const std::string::size_type rnd_length = ::strlen(rnd);
-
-    // The name of the temp file that has been created
-    std::string temp_name;
-
-    // The basename of the file
-    std::string base = in_filename;
-
-    // A temporary buffer for the basename
-    char *buffer = new char[in_filename.length()];
-
-    ::strcpy(buffer, in_filename.substr(0, in_filename.find_last_of('.')).c_str());
-
-    // Extracting the basename from the file name
-    char *buffer2 = ::basename(buffer);
-    base = buffer2;
-    delete[] buffer;
-
-    // Now I need to generate the temporary file name
-    buffer = new char[tmp_length + base.length() + rnd_length + extension.length() + 1];
-
-    std::string::size_type start = 0;
-
-    // Constructing the base string that will be used by mkstemps
-    strcpy(buffer + start, tmp);
-    start += tmp_length;
-
-    strcpy(buffer + start, base.c_str());
-    start += base.length();
-
-    strcpy(buffer + start, rnd);
-    start += rnd_length;
-
-    strcpy(buffer + start, extension.c_str());
-
-    // Now that the string has been constructed, let's make the system call
-    int fd = mkstemps(buffer, extension.length());
-
-    if (fd < 0) {
-        // Construct an exception with strerror(errno)
-        assert(false);
-        return "";
-    }
-
-    // We don't need the file descriptor
-    ::close(fd);
-
-    temp_name = buffer;
-
-    delete[] buffer;
-
-    return temp_name;
-}
-
-/// Deletes a file.
-inline void forbcc::remove(const std::string &filename) {
-    ::remove(filename.c_str());
-}
 
 /// Moves the start_index forward till the end of the current multi-line comment, or until it reaches the end of the line.
 /// It returns whether the end of the comment was reached or not.
@@ -210,7 +143,7 @@ inline void expand_symbols(const std::string &in_filename, const std::string &ou
     std::ofstream out{out_filename};
 
     // Recognized symbols in FORB IDL language.
-    const std::string      symbols  = "{}[]();,";
+    const std::string symbols = "{}[]();,";
 
     // The line number
     std::string::size_type line_num = 0;

@@ -17,6 +17,9 @@ namespace forbcc {
     public:
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
+        /// Empty variable, used to preallocate variables in arrays or to use later assignment operator
+        variable() : entity(nullptr, ""), _var_type(nullptr) {};
+
         /// Constructs a variable with a given type.
         /// Variables don't care about the scope, since they are never referred with their fully qualified name in any
         /// context.

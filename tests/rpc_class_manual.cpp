@@ -33,6 +33,8 @@ example::rpc_class::init_class example::rpc_class::_init{};
 
 // Custom methods - automatically generated
 int example::rpc_class::sum_ints(int a, int b) {
+    std::lock_guard<std::mutex> __mutex_guard{base_stub::_mutex};
+
     this->init_call(forb::call_id_t_cast(rpc_class_method_codes::SUM_INTS));
 
     // Objects serialization

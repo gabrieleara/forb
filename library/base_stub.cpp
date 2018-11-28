@@ -8,7 +8,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 
-#include "base_stub.hpp"
+#include "forb/base_stub.hpp"
 
 constexpr size_t MAX_IFADDRESS_LENGTH = (INET_ADDRSTRLEN > INET6_ADDRSTRLEN)
                                         ? INET_ADDRSTRLEN

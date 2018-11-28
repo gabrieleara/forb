@@ -21,6 +21,9 @@ namespace forbcc {
     public:
         /* ********************************************** CONSTRUCTORS ********************************************** */
 
+        /// Empty type, used to preallocate types in arrays or to use later assignment operator
+        type() : entity() {};
+
         /// Using constructors from superclass
         type(const std::shared_ptr<module> &parent, const std::string &name) : entity(parent, name) {};
 

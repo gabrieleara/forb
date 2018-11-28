@@ -8,10 +8,11 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <mutex>
 
-#include "stream/shared_memory.hpp"
-#include "stream/socket.hpp"
-#include "stream/stream.hpp"
+#include <forb/stream/shared_memory.hpp>
+#include <forb/stream/socket.hpp>
+#include <forb/stream/stream.hpp>
 
 namespace forb {
     // NOTICE: should only be used for integer types
@@ -30,8 +31,11 @@ namespace forb {
         using stream = forb::streams::stream;
 
     private:
-        ssocket       _socket{};
-        shared_memory _shmem{};
+        ssocket       _socket;
+        shared_memory _shmem;
+
+    protected:
+        std::mutex    _mutex;
 
     public:
         // Rule of the five

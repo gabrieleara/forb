@@ -13,29 +13,29 @@
 
 namespace forbcc {
 
-    class type_custom;
+    // Forward declaration
+    class type_struct;
 
     /// Represents a module, which basically is a namespace, so it's a collection of other entities, which can be either
     /// other modules, custom types or interfaces
     class module : public entity, public shareable<module>, public ordered_unique_list<std::shared_ptr<entity>> {
 
+        /* ************************************************* STATIC ************************************************* */
     public:
-        /// Static member representing the global namespace
+        /// Static member representing the global namespace, used as base for the tree-like structure of entities.
         static const std::shared_ptr<module> global_module;
 
         /* ********************************************** CONSTRUCTORS ********************************************** */
+    public:
+        /// Empty module, used to preallocate variables in arrays or to use later assignment operator.
+        /// It is also the constructor used to allocate the global_module.
+        module() : entity() {};
 
         /// Using constructor from superclass
         module(const std::shared_ptr<entity> &parent, const std::string &name) : entity(parent, name) {};
 
-        /// If parent module is nullptr, the created module is equivalent to the global namespace.
-        /// However, this should only be called to actually create the global namespace, defined as a static property
-        /// of this class.
-        explicit module(nullptr_t) : entity(nullptr) {};
-
-    public:
         /**************************************************************************************************************/
-
+    public:
         /// This class is virtual, so it requires a virtual destructor
         ~module() override = default;
 
@@ -59,12 +59,27 @@ namespace forbcc {
         /// Prints module definition (should be called within a source file)
         void print_definition(code_ostream &out) const override;
 
+        /// Returns a pointer to a module identified by name, but only if said module is defined directly within
+        /// current module, nullptr otherwise.
+        std::shared_ptr<module> get_module(const std::string &name);
+
+        /// Finds a module by its name (which may contain :: qualifiers), following C++ scope resolution and visibility
+        /// rules.
+        /// The name may be the simple name of a module declared within this module or it may be
+        /// the name of a module visible from this module (an ancestor of this module).
+        /// Returns a pointer to the requested module if it exists, nullptr otherwise.
         std::shared_ptr<module> find_module(const std::string &name);
 
-        std::shared_ptr<type_custom> find_type(const std::string &name);
+        /// Finds a custom structure type by its name (which may contain :: qualifiers), following C++ scope
+        /// resolution and visibility rules.
+        /// The name may be the simple name of a structure declared within this module or it may be
+        /// the name of a structure visible from this module (defined in an upper module).
+        /// Returns a pointer to the requested module if it exists, nullptr otherwise.
+        std::shared_ptr<type_struct> find_struct(const std::string &name);
 
-    protected:
-        /// Finds a forbcc::type_custom pointer which corresponds to the name given in input.
+    private:
+        /// Finds an entity whose name corresponds to the given one, following C++ scope resolution and visibility
+        /// rules.
         /// The name may be the simple name of a type visible from within this module or it may be
         /// the name of a type visible from this module (defined in an upper module).
         std::shared_ptr<entity> find(const std::string &name);

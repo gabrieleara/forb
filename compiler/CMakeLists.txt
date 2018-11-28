@@ -2,24 +2,10 @@ project(forb_compiler)
 
 
 # The FORB Library Compiler
-add_executable(forbprova
-        types/type.cpp
-        types/type_primitive.cpp
-        types/type_custom.cpp
-        types/type_array.cpp
-
-        module.cpp
-        interface.cpp
-        method.cpp
-
-        code_ostream.cpp
-        prova.cpp
-        )
-
 add_executable(forbcc
         types/type.cpp
         types/type_primitive.cpp
-        types/type_custom.cpp
+        types/type_struct.cpp
         types/type_array.cpp
 
         module.cpp
@@ -28,11 +14,15 @@ add_executable(forbcc
 
         code_ostream.cpp
         preprocessor.cpp
-        parser.cpp)
+        parser.cpp
+        file_utils.cpp
+        compiler_main.cpp)
 
+# The FORB Library Pre-processor
 add_executable(forbpp
-        preprocessor_main.cpp
-        preprocessor.cpp)
+        preprocessor.cpp
+        file_utils.cpp
+        preprocessor_main.cpp)
 
 target_include_directories(forbcc
         PRIVATE include)

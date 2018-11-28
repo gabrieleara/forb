@@ -2,191 +2,158 @@
 // Created by gabriele on 19/11/18.
 //
 
-#include "parser.hpp"
-#include "preprocessor.hpp"
-
 #include <type_traits>
-#include <string>
 #include <fstream>
-
+#include <string>
 #include <regex>
 
+#include "parser.hpp"
+
 #include "module.hpp"
-#include "types/type.hpp"
-#include "types/type_array.hpp"
-#include "types/type_custom.hpp"
-#include "types/type_primitive.hpp"
 #include "interface.hpp"
+
+#include "variable.hpp"
+#include "parameter.hpp"
 #include "method.hpp"
 
-using namespace forbcc;
+#include "types/type.hpp"
+#include "types/type_array.hpp"
+#include "types/type_struct.hpp"
+#include "types/type_primitive.hpp"
 
-const std::string forbcc::keywords[] = {"module", "type", "interface", "in", "out", "inout"};
+const std::string forbcc::keywords[]           = {"MODULE", "TYPE", "INTERFACE"};
+const std::string forbcc::direction_keywords[] = {"IN", "OUT", "INOUT"};
 
-using keywords_under_t = typename std::underlying_type<keywords_idx_t>::type;
-
-keywords_under_t _i(keywords_idx_t idx) {
-    return static_cast<keywords_under_t>(idx);
+/// Converts a string to uppercase.
+/// See https://en.cppreference.com/w/cpp/string/byte/toupper for further reference.
+static inline std::string str_toupper(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::toupper(c); });
+    return s;
 }
 
-inline void next(std::ifstream &file, std::string &str) {
+/// Converts given string into a direction.
+/// Throws an exception on failure.
+forbcc::direction str_to_direction(std::string str) {
+    str        = str_toupper(str);
+    for (int i = 0; i < 3; ++i) {
+        if (str == forbcc::direction_keywords[i])
+            return static_cast<forbcc::direction>(i);
+    }
+
+    throw 19;
+}
+
+template<typename T>
+using underl_type = typename std::underlying_type<T>::type;
+
+template<typename T>
+static underl_type<T> to_int(T enum_val) {
+    return static_cast<underl_type<T>>(enum_val);
+}
+
+static inline void next(std::istream &file, std::string &str) {
     if (!(file >> str)) {
         // TODO: Unexpected EOF?
         throw 15;
     }
 }
 
-inline void skip_symbol(std::ifstream &file, const char symbol) {
+static inline void skip_symbol(std::istream &file, const std::string &symbol) {
     std::string str;
 
     next(file, str);
 
-    if (str.length() != 1 && str[0] != symbol)
+    if (str != symbol)
         throw 17;
 }
 
-inline bool is_valid(const std::string &name) {
+// TODO: change to a regex that doesn't match invalid names for forb
+static inline bool is_valid(const std::string &name) {
     return std::regex_match(name, std::regex("([a-zA-Z_][a-zA-Z0-9_]*)"));
 }
 
-inline module::ptr_t module_declaration(std::ifstream &file, const module::ptr_t &parent) {
-    module::ptr_t ptr;
-    std::string   name;
+/* ***************************************** TYPE ***************************************** */
 
-    next(file, name);
+static inline std::shared_ptr<const forbcc::type> find_type(
+        const forbcc::module::ptr_t &current_module,
+        const std::string &name) {
+    std::shared_ptr<const forbcc::type> type_ptr;
 
-    skip_symbol(file, '{');
-
-    if (!is_valid(name)) {
-        throw 37;
-    }
-
-    if (parent->contains(name)) {
-        ptr = std::dynamic_pointer_cast<module>(parent->operator[](name));
-
-        if (ptr == nullptr) {
-            // The symbol is already defined and it does not refer to a module!
-            throw 23;
-        }
-    } else {
-        // A new entity must be created
-        ptr = module::new_ptr(parent, name);
-        parent->insert(name, ptr);
-    }
-
-    return ptr;
-}
-
-inline type_custom::ptr_t type_declaration(std::ifstream &file, const module::ptr_t &parent) {
-    type_custom::ptr_t ptr;
-    std::string        name;
-
-    next(file, name);
-
-    skip_symbol(file, '{');
-
-    if (!is_valid(name)) {
-        throw 37;
-    }
-
-    if (parent->contains(name)) {
-        // The symbol is already defined within the same module!
-        throw 23;
-    }
-
-    // A new entity must be created
-    ptr = type_custom::new_ptr(parent, name);
-    parent->insert(name, ptr);
-
-    return ptr;
-}
-
-inline interface::ptr_t interface_declaration(std::ifstream &file, const module::ptr_t &parent) {
-    interface::ptr_t ptr;
-    std::string      name;
-
-    next(file, name);
-
-    skip_symbol(file, '{');
-
-    if (!is_valid(name)) {
-        throw 37;
-    }
-
-    if (parent->contains(name)) {
-        // The symbol is already defined within the same module!
-        throw 23;
-    }
-    // A new entity must be created
-    ptr = interface::new_ptr(parent, name);
-    parent->insert(name, ptr);
-
-    return ptr;
-}
-
-std::shared_ptr<const type> find_type(const module::ptr_t &current_module, const std::string &type_str) {
-    std::shared_ptr<const type> var_type = nullptr;
-
-    if (type_primitive::known_types.contains(type_str)) {
+    if (forbcc::type_primitive::known_types.contains(name)) {
         // It is a primitive type
-        var_type = type_primitive::known_types[type_str];
+        type_ptr = forbcc::type_primitive::known_types[name];
     } else {
-        // It is a custom type, which shall be either defined within this module or in another module
+        // It is a struct type, which shall be either defined within this module or in another module
         // visible from this module
-        var_type = current_module->find_type(type_str);
+        type_ptr = current_module->find_struct(name);
     }
 
-    // If at this point var_tupe equals nullptr, the type is unknown
-    if (var_type == nullptr) {
+    // If at this point type_ptr equals nullptr, the type is unknown
+    if (type_ptr == nullptr) {
         throw 57;
     }
 
-    return var_type;
+    return type_ptr;
 }
 
-/// Delimiter can be either ';' or ',' or ')', you can even give multiple characters in a list
-variable variable_declaration(std::ifstream &file,
-                              const module::ptr_t &current_module,
-                              const std::string &type_str,
-                              const std::string &delimiters,
-                              std::string::size_type &delimiter_index) {
+static inline forbcc::type_array::ptr_const_t parse_type_array(
+        std::istream &file,
+        std::shared_ptr<const forbcc::type> &item_type) {
+    forbcc::type_array::ptr_const_t array_ptr;
+    forbcc::type_array::length_t    length;
+    std::string                     input_str;
+    std::string                     array_id;
 
-    std::shared_ptr<const type> var_type = find_type(current_module, type_str);
+    next(file, input_str);
+
+    length = stol(input_str);
+
+    if (length < 1) {
+        throw 19;
+    }
+
+    skip_symbol(file, "]");
+
+    array_id = forbcc::type_array::to_identifier(item_type, length);
+
+    if (forbcc::type_array::arrays.contains(array_id)) {
+        array_ptr = forbcc::type_array::arrays.operator[](array_id);
+        return array_ptr;
+    } else {
+        // I have to create a new array type
+        array_ptr = forbcc::type_array::new_ptr_const(item_type, length);
+        forbcc::type_array::arrays.insert(array_id, array_ptr);
+        return array_ptr;
+    }
+}
+
+/* ***************************************** TYPE END ***************************************** */
+
+/* ***************************************** VARIABLE ***************************************** */
+
+/// Delimiter can be either ';' or ',' or ')', you can even give multiple characters in a list
+/// TODO: detailed description
+static forbcc::variable parse_variable(std::istream &file,
+                                       const forbcc::module::ptr_t &current_module,
+                                       const std::string &type_str,
+                                       const std::string &delimiters,
+                                       std::string::size_type &delimiter_index) {
+
+    std::shared_ptr<const forbcc::type> var_type;
+    std::string                         var_name;
+    std::string                         input_str;
+
+    var_type = find_type(current_module, type_str);
 
     // Now I need to get the variable's name
-    std::string var_name;
     next(file, var_name);
 
-    // Then I need to get a symbol, either the delimiter or [ for an array
-
-    std::string input_str;
+    // Then I need to get a symbol, either one of the delimiter characters or [ for an array
     next(file, input_str);
 
     if (input_str == "[") {
         // It's actually an array!
-        long                        length;
-        std::shared_ptr<const type> item_type = var_type;
-
-        next(file, input_str);
-
-        length = stol(input_str);
-
-        if (length < 1) {
-            throw 19;
-        }
-
-        skip_symbol(file, ']');
-
-        std::string array_id = type_array::to_identifier(item_type, length);
-
-        if (type_array::arrays.contains(array_id)) {
-            var_type = type_array::arrays.operator[](array_id);
-        } else {
-            // I have to create a new array type
-            type_array::ptr_t new_array = type_array::new_ptr(item_type, length);
-            type_array::arrays.insert(array_id, new_array);
-            var_type = new_array;
-        }
+        var_type = parse_type_array(file, var_type);
 
         next(file, input_str);
     }
@@ -198,87 +165,183 @@ variable variable_declaration(std::ifstream &file,
         throw 45;
     }
 
-    return variable{var_type, var_name};
+    return forbcc::variable{var_type, var_name};
 }
 
-variable variable_declaration(std::ifstream &file,
-                              const module::ptr_t &current_module,
-                              const std::string &type_str,
-                              const std::string &delimiters) {
+static inline forbcc::variable parse_variable(std::istream &file,
+                                              const forbcc::module::ptr_t &current_module,
+                                              const std::string &type_name,
+                                              const std::string &delimiters) {
     std::string::size_type dummy_index;
-    return variable_declaration(file, current_module, type_str, delimiters, dummy_index);
+    return parse_variable(file, current_module, type_name, delimiters, dummy_index);
 }
 
-parameter parameter_declaration(std::ifstream &file,
-                                const module::ptr_t &current_module,
-                                std::string &input_str,
-                                bool &keep_going) {
-    direction d;
+/* ***************************************** VARIABLE END ***************************************** */
 
-    if (input_str == "in") {
-        d = direction::IN;
-    } else if (input_str == "out") {
-        d = direction::OUT;
-    } else if (input_str == "inout") {
-        d = direction::INOUT;
-    } else {
-        throw 18;
+/* ***************************************** STRUCT ***************************************** */
+
+static inline forbcc::type_struct::ptr_t
+struct_declaration(std::istream &file, const forbcc::module::ptr_t &parent_module) {
+    forbcc::type_struct::ptr_t ptr;
+    std::string                name;
+
+    next(file, name);
+
+    skip_symbol(file, "{");
+
+    if (!is_valid(name)) {
+        throw 37;
     }
 
-    next(file, input_str);
+    if (parent_module->contains(name)) {
+        // The symbol is already defined within the same module!
+        throw 23;
+    }
 
+    // A new entity must be created
+    ptr = forbcc::type_struct::new_ptr(parent_module, name);
+    parent_module->insert(name, ptr);
+
+    return ptr;
+}
+
+
+static void parse_struct(std::istream &file, const forbcc::module::ptr_t &current_module) {
+    forbcc::type_struct::ptr_t new_struct;
+    forbcc::variable           var;
+    std::string                input_str;
+    bool                       keep_going = true;
+
+    new_struct = struct_declaration(file, current_module);
+
+    while (keep_going) {
+        next(file, input_str);
+
+        // Expecting either a closed } or a variable declaration
+        if (input_str == "}") {
+            keep_going = false;
+            continue;
+        }
+
+        // Expecting now a variable declaration
+        var = parse_variable(file, current_module, input_str, ";");
+
+        if (!new_struct->insert(var.name(), var)) {
+            throw 15;
+        }
+    }
+}
+
+/* ***************************************** STRUCT END ***************************************** */
+
+/* ***************************************** METHOD ***************************************** */
+
+static inline forbcc::parameter parse_parameter(std::istream &file,
+                                                const forbcc::module::ptr_t &current_module,
+                                                std::string &input_str,
+                                                bool &keep_going) {
+    forbcc::direction      dir;
+    forbcc::variable       var;
     std::string::size_type index;
 
-    variable v = variable_declaration(file, current_module, input_str, ",)", index);
+    dir = str_to_direction(input_str);
+
+    // I need to read the type of the variable before calling parse_variable
+    // since parse_variable has been defined to be mainly used for struct
+    // declarations
+    next(file, input_str);
+
+    var = parse_variable(file, current_module, input_str, ",)", index);
 
     keep_going = index != 1;
 
-    return parameter{d, v};
+    return forbcc::parameter{dir, var};
 }
 
-method method_declaration(std::ifstream &file,
-                          module::ptr_t &current_module,
-                          interface::ptr_t &current_interf,
-                          std::string input_str) {
+static inline forbcc::method parse_method(std::istream &file,
+                                          const forbcc::module::ptr_t &current_module,
+                                          const forbcc::interface::ptr_t &current_interface,
+                                          const std::string &return_type_name) {
 
-    std::shared_ptr<const type> return_type = find_type(current_module, input_str);
+    forbcc::parameter                   param;
+    forbcc::method                      new_method;
+    std::shared_ptr<const forbcc::type> return_type;
+    std::string                         input_str;
+    bool                                keep_going = true;
 
-    std::string method_name;
+    return_type = find_type(current_module, return_type_name);
 
-    next(file, method_name);
+    // Read method name
+    next(file, input_str);
 
-    method current_method{current_interf, method_name, return_type};
+    new_method = forbcc::method{current_interface, input_str, return_type};
 
-    skip_symbol(file, '(');
-
-    bool keep_going = true;
+    skip_symbol(file, "(");
 
     while (keep_going) {
         next(file, input_str);
 
         // Expecting either a closed ) or a parameter declaration
         if (input_str == ")") {
-            keep_going = false;
-            continue;
+            // Stop parsing, expected a new parameter, but parsed ')' instead
+            throw 17;
         }
 
-        // Expecting now a parameter declaration
-        parameter p = parameter_declaration(file, current_module, input_str, keep_going);
+        // Expecting now a parameter declaration, the input_str is expected to be
+        // the direction of the parameter, which may be followed by either a `,`
+        // or a `)` (which marks the end of this loop).
+        param = parse_parameter(file, current_module, input_str, keep_going);
 
-        if (!current_method.insert(p.var().name(), p)) {
+        if (new_method.contains(param.name())) {
+            // Already existing parameter name
             throw 15;
         }
+
+        new_method.insert(param.name(), param);
     }
 
-    skip_symbol(file, ';');
+    skip_symbol(file, ";");
 
-    return current_method;
+    return new_method;
 }
 
-void parse_within_type(std::ifstream &file, module::ptr_t &current_module, type_custom::ptr_t &current_type) {
-    std::string input_str;
+/* ***************************************** METHOD END ***************************************** */
 
-    bool keep_going = true;
+/* ***************************************** INTERFACE ***************************************** */
+
+
+static inline forbcc::interface::ptr_t
+interface_declaration(std::istream &file, const forbcc::module::ptr_t &parent_module) {
+    forbcc::interface::ptr_t ptr;
+    std::string              name;
+
+    next(file, name);
+
+    skip_symbol(file, "{");
+
+    if (!is_valid(name)) {
+        throw 37;
+    }
+
+    if (parent_module->contains(name)) {
+        // The symbol is already defined within the same module!
+        throw 23;
+    }
+
+    // A new entity must be created
+    ptr = forbcc::interface::new_ptr(parent_module, name);
+    parent_module->insert(name, ptr);
+
+    return ptr;
+}
+
+static void parse_interface(std::istream &file, const forbcc::module::ptr_t &current_module) {
+    forbcc::interface::ptr_t new_interface;
+    forbcc::method           new_method;
+    std::string              input_str;
+    bool                     keep_going = true;
+
+    new_interface = interface_declaration(file, current_module);
 
     while (keep_going) {
         next(file, input_str);
@@ -290,60 +353,76 @@ void parse_within_type(std::ifstream &file, module::ptr_t &current_module, type_
         }
 
         // Expecting now a variable declaration
-        variable v = variable_declaration(file, current_module, input_str, ";");
+        new_method = parse_method(file, current_module, new_interface, input_str);
 
-        if (!current_type->insert(v.name(), v)) {
-            throw 15;
-        }
-    }
-}
-
-void parse_within_interface(std::ifstream &file, module::ptr_t current_module, interface::ptr_t current_interf) {
-    std::string input_str;
-
-    bool keep_going = true;
-
-    while (keep_going) {
-        next(file, input_str);
-
-        // Expecting either a closed } or a variable declaration
-        if (input_str == "}") {
-            keep_going = false;
-            continue;
-        }
-
-        // Expecting now a variable declaration
-        method m = method_declaration(file, current_module, current_interf, input_str);
-
-        if (!current_interf->insert(m.id(), m)) {
+        if (!new_interface->insert(new_method.id(), new_method)) {
             throw 19;
         }
     }
 }
 
+/* ***************************************** INTERFACE END ***************************************** */
 
-void parse_within_module(std::ifstream &file, module::ptr_t current_module) {
+
+/* ***************************************** MODULE ***************************************** */
+
+static forbcc::module::ptr_t module_declaration(std::istream &file, const forbcc::module::ptr_t &parent);
+
+static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent_module);
+
+static void parse_module_body(std::istream &file, const forbcc::module::ptr_t &current_module);
+
+static inline forbcc::module::ptr_t module_declaration(std::istream &file, const forbcc::module::ptr_t &parent) {
+    forbcc::module::ptr_t new_module;
+    std::string           name;
+
+    next(file, name);
+
+    skip_symbol(file, "{");
+
+    if (!is_valid(name)) {
+        throw 37;
+    }
+
+    if (parent->contains(name)) {
+        new_module = parent->get_module(name);
+
+        if (new_module == nullptr) {
+            // The symbol is already defined and it does not refer to a module!
+            throw 23;
+        }
+    } else {
+        // A new entity must be created
+        new_module = forbcc::module::new_ptr(parent, name);
+        parent->insert(name, new_module);
+    }
+
+    return new_module;
+}
+
+static inline void parse_module_body(std::istream &file, const forbcc::module::ptr_t &current_module) {
     std::string input_str;
+    bool        keep_going = true;
 
-    bool keep_going = true;
-
+    // Expecting either a module, struct or interface keyword
     while (keep_going && file >> input_str) {
-        // Expecting either a "module", "type" or "interface" keyword
-        if (input_str == forbcc::keywords[_i(keywords_idx_t::MODULE)]) {
-            module::ptr_t new_module = module_declaration(file, current_module);
 
-            parse_within_module(file, new_module);
-        } else if (input_str == forbcc::keywords[_i(keywords_idx_t::TYPE)]) {
-            type_custom::ptr_t new_type = type_declaration(file, current_module);
+        // Keywords are converted to uppercase to ignore case during comparison
+        input_str = str_toupper(input_str);
 
-            parse_within_type(file, current_module, new_type);
-        } else if (input_str == keywords[_i(keywords_idx_t::INTERFACE)]) {
-            interface::ptr_t new_interface = interface_declaration(file, current_module);
+        if (input_str == forbcc::keywords[to_int(forbcc::keywords_idx_t::MODULE)]) {
+            parse_module(file, current_module);
 
-            parse_within_interface(file, current_module, new_interface);
+        } else if (input_str == forbcc::keywords[to_int(forbcc::keywords_idx_t::STRUCT)]) {
+            parse_struct(file, current_module);
+
+        } else if (input_str == forbcc::keywords[to_int(forbcc::keywords_idx_t::INTERFACE)]) {
+            parse_interface(file, current_module);
+
         } else if (input_str == "}") {
-            if (current_module == module::global_module)
+            if (current_module == forbcc::module::global_module) {
                 throw 17;
+            }
 
             keep_going = false;
         } else {
@@ -351,51 +430,24 @@ void parse_within_module(std::ifstream &file, module::ptr_t current_module) {
         }
     }
 
-    if (!file && current_module != module::global_module) {
+    if (!file && current_module != forbcc::module::global_module) {
         // Unexpected end of file
         throw 73;
     }
 }
 
+static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent_module) {
+    forbcc::module::ptr_t new_module = module_declaration(file, parent_module);
+
+    parse_module_body(file, new_module);
+}
+
+/* ***************************************** MODULE END ***************************************** */
+
 void forbcc::parser::execute() {
     std::ifstream file{filename};
 
-    module::ptr_t new_module = module::global_module;
+    forbcc::module::ptr_t new_module = forbcc::module::global_module;
 
-    parse_within_module(file, new_module);
-}
-
-
-#include <iostream>
-#include "code_ostream.hpp"
-
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        std::cerr << "Please give as argument the name of the *.forb file to be processed." << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    std::string preprocessed_file = forbcc::make_temp(argv[1], ".forbpp");
-
-    forbcc::preprocessor prep(argv[1], preprocessed_file);
-
-    prep.execute();
-
-    forbcc::parser parser(preprocessed_file);
-
-    parser.execute();
-
-
-    forbcc::code_ostream out{std::cout};
-
-    // TODO: modify from here
-    std::cout << "====== DECLARATION ======" << std::endl;
-
-    forbcc::module::global_module->print_declaration(out);
-
-    std::cout << "====== DEFINITION ======" << std::endl;
-
-    forbcc::module::global_module->print_definition(out);
-
-    return EXIT_SUCCESS;
+    parse_module_body(file, new_module);
 }

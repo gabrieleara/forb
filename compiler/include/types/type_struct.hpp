@@ -12,30 +12,33 @@
 #include "variable.hpp"
 
 namespace forbcc {
-    /// Custom types are basically structures defined by the user that can be transferred using the library
-    class type_custom : public type, public shareable<type_custom>, public ordered_unique_list<variable> {
-    public:
+    /// Structure types are basically structures defined by the user that can be transferred between library components
+    class type_struct : public type, public shareable<type_struct>, public ordered_unique_list<variable> {
+
         /* ********************************************** CONSTRUCTORS ********************************************** */
+    public:
+        /// Empty structure type, used to preallocate variables in arrays or to use later assignment operator
+        type_struct() : type() {};
 
         /// Using constructors from superclass
-        type_custom(const std::shared_ptr<module> &parent, std::string name) : type(parent, name) {};
+        type_struct(const std::shared_ptr<module> &parent, const std::string &name) : type(parent, name) {};
 
         /**************************************************************************************************************/
 
         /// This class is virtual, so it requires a virtual destructor
-        ~type_custom() override = default;
+        ~type_struct() override = default;
 
         /// This class supports moving
-        type_custom(type_custom &&) = default;
+        type_struct(type_struct &&) = default;
 
         /// This class supports moving
-        type_custom &operator=(type_custom &&) = default;
+        type_struct &operator=(type_struct &&) = default;
 
         /// This class supports copying
-        type_custom(const type_custom &) = default;
+        type_struct(const type_struct &) = default;
 
         /// This class supports copying
-        type_custom &operator=(const type_custom &) = default;
+        type_struct &operator=(const type_struct &) = default;
 
         /**************************************************************************************************************/
 

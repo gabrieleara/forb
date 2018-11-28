@@ -20,7 +20,8 @@ set_target_properties(forb PROPERTIES
         VERSION ${FORB_LIB_VERSION}
         SOVERSION ${FORB_LIB_SOVERSION})
 
-# "include" directory will be exported
+# The "include" directory will be exported into standard include directory
+# while "private" directory contains only headers used within the library
 target_include_directories(forb
         PUBLIC include
         PRIVATE private)
@@ -46,4 +47,4 @@ install(TARGETS forb
 
 # Actually to export include directory we need to copy manually files
 install(DIRECTORY include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/forb)
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/)

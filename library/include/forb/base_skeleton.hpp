@@ -9,7 +9,7 @@
 #include <thread>
 #include <vector>
 
-#include "stream/socket.hpp"
+#include "forb/stream/socket.hpp"
 
 
 namespace forb {

@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "json.hpp"
-#include "remote_registry.hpp"
+#include "forb/remote_registry.hpp"
 
 using json = nlohmann::json;
 using remote_registry = forb::remote_registry;

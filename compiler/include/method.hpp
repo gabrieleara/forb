@@ -18,14 +18,20 @@ namespace forbcc {
     /// Defines a method of a forbcc::interface, which can have an arbitrary number of input, output or inout
     /// parameters.
     class method : public entity, public ordered_unique_list<parameter> {
+
+        /* *********************************************** ATTRIBUTES *********************************************** */
+    private:
         /// Counts the number of input, output and inout parameters
         int _counters[3] = {0, 0, 0};
 
-        /// Reference to the return type of the method
+        /// Pointer to the return type of the method
         std::shared_ptr<const type> _return_type;
 
     public:
         /* ********************************************** CONSTRUCTORS ********************************************** */
+
+        /// Empty method, used to preallocate variables in arrays or to use later assignment operator
+        method() : entity(), _return_type(nullptr) {};
 
         /// Constructs a new method for the given parent interface with a name and a return type
         method(const std::shared_ptr<interface> &parent, const std::string &name,
@@ -57,7 +63,7 @@ namespace forbcc {
 
         /// THIS FUNCTION DOES NOTHING, use the print_stub_definition and print_skeleton_definition methods respectively
         /// according to requirements!
-        /// The function was put only because this class is a subclass of the forbcc::entity class, which has a pure
+        /// The function was defined only because this class is a subclass of the forbcc::entity class, which has a pure
         /// virtual print_definition method.
         void print_definition(code_ostream &out __attribute__((unused))) const override {};
 
@@ -71,7 +77,8 @@ namespace forbcc {
         /// of the generated skeleton class.
         void print_skeleton_definition(code_ostream &out) const;
 
-        /// Proxy to ordered_unique_list<parameter> that counts the number of parameters of each type.
+        /// Proxy to ordered_unique_list<forbcc::parameter>, which counts the number of parameters of each
+        /// successfully insterted type.
         bool insert(std::string key, const parameter &param) override {
             bool success = ordered_unique_list::insert(key, param);
 
@@ -83,7 +90,7 @@ namespace forbcc {
         };
 
         /// Returns the method id, which will be stored within an enum class defined for each interface.
-        /// Method id is obtained as a combination of the method name and its paramethers, so that methods overloading
+        /// Method id is obtained as a combination of the method name and its parameters, so that methods overloading
         /// is possible for remote objects.
         std::string id() const;
 
@@ -93,6 +100,10 @@ namespace forbcc {
         /// declared/defined either within class declaration (no full scope qualification needed) or outside (full
         /// scope qualification needed).
         void print_prototype(forbcc::code_ostream &out, const std::string &thename) const;
+
+        /// Concatenates underscores at the beginning of the desired local variable name until an unused name is
+        /// obtained.
+        std::string get_unused_variable_name(std::string name) const;
     };
 }
 
