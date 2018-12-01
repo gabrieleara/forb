@@ -12,17 +12,19 @@ add_executable(forbcc
         interface.cpp
         method.cpp
 
-        code_ostream.cpp
         preprocessor.cpp
         parser.cpp
+        generator.cpp
+
+        code_ostream.cpp
         file_utils.cpp
-        compiler_main.cpp)
+        main_compiler.cpp)
 
 # The FORB Library Pre-processor
 add_executable(forbpp
         preprocessor.cpp
         file_utils.cpp
-        preprocessor_main.cpp)
+        main_preprocessor.cpp)
 
 target_include_directories(forbcc
         PRIVATE include)

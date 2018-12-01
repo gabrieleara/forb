@@ -20,41 +20,188 @@
 #include "types/type_array.hpp"
 #include "types/type_struct.hpp"
 #include "types/type_primitive.hpp"
+#include "exception.hpp"
 
-const std::string forbcc::keywords[]           = {"MODULE", "TYPE", "INTERFACE"};
-const std::string forbcc::direction_keywords[] = {"IN", "OUT", "INOUT"};
+/*
+ ***********************************************************************************************************************
+ *                                 STATIC FUNCTIONS DECLARATIONS (WITH DOCUMENTATION)                                  *
+ ***********************************************************************************************************************
+ */
+
+// Following declarations are split in sections, starting from commonly used functions, then parsers for each
+// different entity used within FORB IDL language.
 
 /// Converts a string to uppercase.
 /// See https://en.cppreference.com/w/cpp/string/byte/toupper for further reference.
+static inline std::string str_toupper(std::string s);
+
+/// Converts given string into a direction, throwing an exception on failure.
+static inline forbcc::direction str_to_direction(std::string str);
+
+/// The integer type underlying an enum class type.
+template<typename T>
+using underl_type = typename std::underlying_type<T>::type;
+
+/// Converts an enum to a bare integer type.
+template<typename T>
+static inline underl_type<T> to_int(T enum_val) {
+    return static_cast<underl_type<T>>(enum_val);
+}
+
+/// Reads the next string from file, throwing an exception when in input error occurs.
+static inline void next(std::istream &file, std::string &str);
+
+/// Skips next string, but only if it corresponds to the given symbol, otherwise throws an exception.
+static inline void skip_symbol(std::istream &file, const std::string &symbol);
+
+/// Returns true if the given name is a valid C++ name that can be used for FORB library components.
+static inline bool is_valid(const std::string &name);
+
+/* ***************************************** TYPE ***************************************** */
+
+/// Returns a pointer to the type specified by name, searching within current_module scope of visibility.
+/// If the given name is a primitive type, the corresponding primitive type pointer is returned.
+/// Otherwise, see forbcc::module::find_struct for further details.
+/// On failure this function throws an exception.
+static inline std::shared_ptr<const forbcc::type> find_type(
+        const forbcc::module::ptr_t &current_module,
+        const std::string &name);
+
+/// Parses an array declaration, to be called from within parse_type.
+/// This function expects as next string the length of the array, which means
+/// that externally the `[` symbol should be already parsed, indicating that
+/// this function shall be called.
+/// Returns either a pointer to the array or throws an exception on error.
+static inline forbcc::type_array::ptr_const_t parse_type_array(
+        std::istream &file,
+        std::shared_ptr<const forbcc::type> &item_type);
+
+/* ***************************************** TYPE END ***************************************** */
+
+/* ***************************************** VARIABLE ***************************************** */
+
+/// Parses a variable declaration. The variable declaration shall be terminated by one of the
+/// characters contained in delimiters string (usually `;`, `,` or `)`.
+/// The delimiter_index argument is an output argument and it will be updated with the index
+/// of the matching delimiter character within delimiters string.
+/// The type of the variable is looked up starting from the type_str string.
+static inline forbcc::variable parse_variable(std::istream &file,
+                                              const forbcc::module::ptr_t &current_module,
+                                              const std::string &type_str,
+                                              const std::string &delimiters,
+                                              std::string::size_type &delimiter_index);
+
+/// Same as the other parse_variable, but without the index checking.
+/// Also this function throws exceptions on failure.
+static inline forbcc::variable parse_variable(std::istream &file,
+                                              const forbcc::module::ptr_t &current_module,
+                                              const std::string &type_name,
+                                              const std::string &delimiters);
+
+/* *************************************** VARIABLE END *************************************** */
+
+/* **************************************** STRUCTURE ***************************************** */
+
+/// Parses the name of a structure and inserts the structure to the current_module set of entities.
+/// Throws an exception on failure.
+static inline forbcc::type_struct::ptr_t struct_declaration(
+        std::istream &file,
+        const forbcc::module::ptr_t &parent_module);
+
+/// Parses a structure declaration.
+/// Expects the next symbol to be the structure name, followed by `{`, a list of variables and `}`, followed by `;`
+static inline void parse_struct(std::istream &file, const forbcc::module::ptr_t &current_module);
+
+/* ************************************** STRUCTURE END ************************************* */
+
+/* ***************************************** METHOD ***************************************** */
+
+/// Parses the declaration of a method parameter, expects input_str to be the direction specifier,
+/// while following there is a variable declaration, terminated by either , or ).
+/// Returns the parsed parameter.
+/// The current_module argument is needed to perform type lookup with scope.
+/// The keep_going argument is an output argument and it specifies whether `)` was reached or not,
+/// thus whether the parameter list is finished or not.
+static inline forbcc::parameter parse_parameter(std::istream &file,
+                                                const forbcc::module::ptr_t &current_module,
+                                                std::string &input_str,
+                                                bool &keep_going);
+
+/// Parses a method declaraton; the return_type_name parameter being the already-parsed return type of the method.
+/// Performs type lookup using current_module as scope for the return type, then parses the parameter list of the
+/// method (if one or more parameters are present).
+/// Returns the newly parsed method, throws an exception on parse failure.
+static inline forbcc::method parse_method(std::istream &file,
+                                          const forbcc::module::ptr_t &current_module,
+                                          const forbcc::interface::ptr_t &current_interface,
+                                          const std::string &return_type_name);
+
+/* *************************************** METHOD END *************************************** */
+
+/* *************************************** INTERFACE **************************************** */
+
+/// Parses the interface name and creates an empty interface within current_module,
+/// appending it to the module.
+/// Returns a pointer to the newly created interface, or throws an exception on parse failure.
+static inline forbcc::interface::ptr_t interface_declaration(
+        std::istream &file,
+        const forbcc::module::ptr_t &current_module);
+
+/// Parses an interface declaration.
+/// The current module is used both to insert the newly created interface in its children set and
+/// to perform name lookup for referred types.
+/// Expects the interface name as next symbol, followed by `{`, a list of methods, `}' and finally
+/// a `;` to delimit the end of the declaration.
+static inline void parse_interface(std::istream &file, const forbcc::module::ptr_t &current_module);
+
+
+/* ************************************* INTERFACE END ************************************** */
+
+/* ***************************************** MODULE ***************************************** */
+
+/// Parses the name of the module and creates a new module (if no such module was already defined
+/// within parent) or returns a previously referred module.
+/// On error an exception is thrown.
+static inline forbcc::module::ptr_t module_declaration(std::istream &file, const forbcc::module::ptr_t &parent);
+
+/// Parses the body of a module, which may contain new modules, structures or interfaces.
+/// On error an exception is thrown.
+static void parse_module_body(std::istream &file, const forbcc::module::ptr_t &current_module);
+
+/// Parses a module, expects next symbol to be the module name, followed by `{`, the body of the module
+/// and finally a `}`. Only forbcc::module::global_module is supposed not to have a `}` at the end, but
+/// expects the end of the input stream instead.
+/// On error an exception is thrown.
+static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent_module);
+
+/* *************************************** MODULE END *************************************** */
+
+
+/*
+ ***********************************************************************************************************************
+ *                                                   IMPLEMENTATION                                                    *
+ ***********************************************************************************************************************
+ */
+
 static inline std::string str_toupper(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::toupper(c); });
     return s;
 }
 
-/// Converts given string into a direction.
-/// Throws an exception on failure.
-forbcc::direction str_to_direction(std::string str) {
-    str        = str_toupper(str);
+static inline forbcc::direction str_to_direction(std::string str) {
+    str = str_toupper(str);
+
     for (int i = 0; i < 3; ++i) {
         if (str == forbcc::direction_keywords[i])
             return static_cast<forbcc::direction>(i);
     }
 
-    throw 19;
-}
-
-template<typename T>
-using underl_type = typename std::underlying_type<T>::type;
-
-template<typename T>
-static underl_type<T> to_int(T enum_val) {
-    return static_cast<underl_type<T>>(enum_val);
+    throw forbcc::exception{"parse of input file", "expected direction qualifier, got \"" + str + "\" instead"};
 }
 
 static inline void next(std::istream &file, std::string &str) {
     if (!(file >> str)) {
-        // TODO: Unexpected EOF?
-        throw 15;
+        throw forbcc::exception{"parse of input file", "unexpected EOF"};
     }
 }
 
@@ -64,12 +211,20 @@ static inline void skip_symbol(std::istream &file, const std::string &symbol) {
     next(file, str);
 
     if (str != symbol)
-        throw 17;
+        throw forbcc::exception{"parse of input file",
+                                "unexpected symbol \"" + str + "\" encountered while expecting '" + symbol + "'"};
 }
 
-// TODO: change to a regex that doesn't match invalid names for forb
 static inline bool is_valid(const std::string &name) {
-    return std::regex_match(name, std::regex("([a-zA-Z_][a-zA-Z0-9_]*)"));
+    if (!std::regex_match(name, std::regex("([a-zA-Z_][a-zA-Z0-9_]*)")))
+        return false;
+
+    for (int i = 0; i < forbcc::reserved_names_length; ++i) {
+        if (forbcc::reserved_names[i] == name)
+            return false;
+    }
+
+    return true;
 }
 
 /* ***************************************** TYPE ***************************************** */
@@ -90,7 +245,7 @@ static inline std::shared_ptr<const forbcc::type> find_type(
 
     // If at this point type_ptr equals nullptr, the type is unknown
     if (type_ptr == nullptr) {
-        throw 57;
+        throw forbcc::exception{"parse of input file", "unknown type identifier \"" + name + "\""};
     }
 
     return type_ptr;
@@ -106,10 +261,15 @@ static inline forbcc::type_array::ptr_const_t parse_type_array(
 
     next(file, input_str);
 
-    length = stol(input_str);
+    try {
+        length = stol(input_str);
+    } catch(std::invalid_argument ex) {
+        length = -1;
+    }
 
     if (length < 1) {
-        throw 19;
+        throw forbcc::exception{"parse of input file",
+                                "expected strictly positive integer as array length, parsed \"" + input_str + "\" instead"};
     }
 
     skip_symbol(file, "]");
@@ -117,6 +277,7 @@ static inline forbcc::type_array::ptr_const_t parse_type_array(
     array_id = forbcc::type_array::to_identifier(item_type, length);
 
     if (forbcc::type_array::arrays.contains(array_id)) {
+        // The parsed array is already defined somewhere
         array_ptr = forbcc::type_array::arrays.operator[](array_id);
         return array_ptr;
     } else {
@@ -131,28 +292,31 @@ static inline forbcc::type_array::ptr_const_t parse_type_array(
 
 /* ***************************************** VARIABLE ***************************************** */
 
-/// Delimiter can be either ';' or ',' or ')', you can even give multiple characters in a list
-/// TODO: detailed description
-static forbcc::variable parse_variable(std::istream &file,
-                                       const forbcc::module::ptr_t &current_module,
-                                       const std::string &type_str,
-                                       const std::string &delimiters,
-                                       std::string::size_type &delimiter_index) {
+static inline forbcc::variable parse_variable(std::istream &file,
+                                              const forbcc::module::ptr_t &current_module,
+                                              const std::string &type_str,
+                                              const std::string &delimiters,
+                                              std::string::size_type &delimiter_index) {
 
     std::shared_ptr<const forbcc::type> var_type;
     std::string                         var_name;
     std::string                         input_str;
 
+    // Finding the type of the variable
     var_type = find_type(current_module, type_str);
 
     // Now I need to get the variable's name
     next(file, var_name);
 
+    if (!is_valid(var_name)) {
+        throw forbcc::exception{"parse of input file", "name \"" + var_name + "\" is not a valid name"};
+    }
+
     // Then I need to get a symbol, either one of the delimiter characters or [ for an array
     next(file, input_str);
 
     if (input_str == "[") {
-        // It's actually an array!
+        // It's actually an array! Parse its length and update the type of the variable
         var_type = parse_type_array(file, var_type);
 
         next(file, input_str);
@@ -161,8 +325,10 @@ static forbcc::variable parse_variable(std::istream &file,
     delimiter_index = delimiters.find(input_str[0]);
 
     if (input_str.length() != 1 && delimiter_index >= delimiters.length()) {
-        // Unexpected symbol
-        throw 45;
+        throw forbcc::exception{"parse of input file",
+                                "unexpected symbol in variable declaration '" + input_str +
+                                "', was expecting one of the following symbols: \"" +
+                                delimiters + "\""};
     }
 
     return forbcc::variable{var_type, var_name};
@@ -176,26 +342,30 @@ static inline forbcc::variable parse_variable(std::istream &file,
     return parse_variable(file, current_module, type_name, delimiters, dummy_index);
 }
 
-/* ***************************************** VARIABLE END ***************************************** */
+/* *************************************** VARIABLE END *************************************** */
 
-/* ***************************************** STRUCT ***************************************** */
+/* **************************************** STRUCTURE ***************************************** */
 
-static inline forbcc::type_struct::ptr_t
-struct_declaration(std::istream &file, const forbcc::module::ptr_t &parent_module) {
+static inline forbcc::type_struct::ptr_t struct_declaration(
+        std::istream &file,
+        const forbcc::module::ptr_t &parent_module) {
     forbcc::type_struct::ptr_t ptr;
     std::string                name;
 
+    /// Parse the structure name
     next(file, name);
 
     skip_symbol(file, "{");
 
     if (!is_valid(name)) {
-        throw 37;
+        throw forbcc::exception{"parse of input file", "name \"" + name + "\" is not a valid name"};
     }
 
     if (parent_module->contains(name)) {
         // The symbol is already defined within the same module!
-        throw 23;
+        throw forbcc::exception{"parse of input file",
+                                "name \"" + name + "\" already exists within module \"" + parent_module->codename() +
+                                "\""};
     }
 
     // A new entity must be created
@@ -205,8 +375,7 @@ struct_declaration(std::istream &file, const forbcc::module::ptr_t &parent_modul
     return ptr;
 }
 
-
-static void parse_struct(std::istream &file, const forbcc::module::ptr_t &current_module) {
+static inline void parse_struct(std::istream &file, const forbcc::module::ptr_t &current_module) {
     forbcc::type_struct::ptr_t new_struct;
     forbcc::variable           var;
     std::string                input_str;
@@ -226,15 +395,26 @@ static void parse_struct(std::istream &file, const forbcc::module::ptr_t &curren
         // Expecting now a variable declaration
         var = parse_variable(file, current_module, input_str, ";");
 
-        if (!new_struct->insert(var.name(), var)) {
-            throw 15;
+        if (new_struct->contains(var.name())) {
+            throw forbcc::exception{"parse of input file",
+                                    "attribute \"" + var.name() + "\" already defined for \"" + new_struct->codename() +
+                                    "\""};
         }
+
+        new_struct->insert(var.name(), var);
+    }
+
+    // Expects `;` to terminate declaration
+    skip_symbol(file, ";");
+
+    if (new_struct->list().empty()) {
+        throw forbcc::exception{"parse of input file", "structure \"" + new_struct->codename() + "\" is empty"};
     }
 }
 
-/* ***************************************** STRUCT END ***************************************** */
+/* ************************************** STRUCTURE END *************************************** */
 
-/* ***************************************** METHOD ***************************************** */
+/* ****************************************** METHOD ****************************************** */
 
 static inline forbcc::parameter parse_parameter(std::istream &file,
                                                 const forbcc::module::ptr_t &current_module,
@@ -247,12 +427,14 @@ static inline forbcc::parameter parse_parameter(std::istream &file,
     dir = str_to_direction(input_str);
 
     // I need to read the type of the variable before calling parse_variable
-    // since parse_variable has been defined to be mainly used for struct
-    // declarations
+    // since parse_variable has been defined to be used both for structure
+    // and method declarations.
     next(file, input_str);
 
+    // The index is used to check whether `)` delimiter was found or not
     var = parse_variable(file, current_module, input_str, ",)", index);
 
+    // If `)` is reached, then the parameter list is finished
     keep_going = index != 1;
 
     return forbcc::parameter{dir, var};
@@ -267,8 +449,10 @@ static inline forbcc::method parse_method(std::istream &file,
     forbcc::method                      new_method;
     std::shared_ptr<const forbcc::type> return_type;
     std::string                         input_str;
-    bool                                keep_going = true;
+    bool                                keep_going     = true;
+    bool                                has_parameters = false;
 
+    // Get the return type from the input string
     return_type = find_type(current_module, return_type_name);
 
     // Read method name
@@ -281,10 +465,19 @@ static inline forbcc::method parse_method(std::istream &file,
     while (keep_going) {
         next(file, input_str);
 
-        // Expecting either a closed ) or a parameter declaration
+        // Expecting either a `)` or a parameter declaration
         if (input_str == ")") {
-            // Stop parsing, expected a new parameter, but parsed ')' instead
-            throw 17;
+            if (has_parameters) {
+                // Stop parsing, expected a new parameter, but parsed ')' instead
+                throw forbcc::exception{"parse of input file",
+                                        "expected a parameter declaration for method \"" +
+                                        current_interface->codename() + "." + new_method.name() +
+                                        "\", but the ')' symbol was reached instead"};
+            }
+
+            // The method has no parameters
+            keep_going = false;
+            continue;
         }
 
         // Expecting now a parameter declaration, the input_str is expected to be
@@ -294,24 +487,29 @@ static inline forbcc::method parse_method(std::istream &file,
 
         if (new_method.contains(param.name())) {
             // Already existing parameter name
-            throw 15;
+            throw forbcc::exception{"parse of input file",
+                                    "parameter \"" + param.name() + "\" is already defined for method \"" +
+                                    current_interface->codename() + "." + new_method.name() + "\""
+            };
         }
 
         new_method.insert(param.name(), param);
+        has_parameters = true;
     }
 
+    // Expects `;` to terminate declaration
     skip_symbol(file, ";");
 
     return new_method;
 }
 
-/* ***************************************** METHOD END ***************************************** */
+/* **************************************** METHOD END **************************************** */
 
-/* ***************************************** INTERFACE ***************************************** */
+/* **************************************** INTERFACE ***************************************** */
 
-
-static inline forbcc::interface::ptr_t
-interface_declaration(std::istream &file, const forbcc::module::ptr_t &parent_module) {
+static inline forbcc::interface::ptr_t interface_declaration(
+        std::istream &file,
+        const forbcc::module::ptr_t &current_module) {
     forbcc::interface::ptr_t ptr;
     std::string              name;
 
@@ -320,57 +518,65 @@ interface_declaration(std::istream &file, const forbcc::module::ptr_t &parent_mo
     skip_symbol(file, "{");
 
     if (!is_valid(name)) {
-        throw 37;
+        throw forbcc::exception{"parse of input file", "name \"" + name + "\" is not a valid name"};
     }
 
-    if (parent_module->contains(name)) {
+    if (current_module->contains(name)) {
         // The symbol is already defined within the same module!
-        throw 23;
+        throw forbcc::exception{"parse of input file",
+                                "entity \"" + name + "\" is already defined in module \"" + current_module->codename() +
+                                "\""};
     }
 
     // A new entity must be created
-    ptr = forbcc::interface::new_ptr(parent_module, name);
-    parent_module->insert(name, ptr);
+    ptr = forbcc::interface::new_ptr(current_module, name);
+    current_module->insert(name, ptr);
 
     return ptr;
 }
 
-static void parse_interface(std::istream &file, const forbcc::module::ptr_t &current_module) {
+static inline void parse_interface(std::istream &file, const forbcc::module::ptr_t &current_module) {
     forbcc::interface::ptr_t new_interface;
     forbcc::method           new_method;
     std::string              input_str;
     bool                     keep_going = true;
 
+    /// Parses the name of the interface and returns the new interface.
     new_interface = interface_declaration(file, current_module);
 
     while (keep_going) {
         next(file, input_str);
 
-        // Expecting either a closed } or a variable declaration
+        // Expecting either a `}` or a method declaration
         if (input_str == "}") {
             keep_going = false;
             continue;
         }
 
-        // Expecting now a variable declaration
+        // Expecting now a variable method
         new_method = parse_method(file, current_module, new_interface, input_str);
 
-        if (!new_interface->insert(new_method.id(), new_method)) {
-            throw 19;
+        if (new_interface->contains(new_method.id())) {
+            // A method with same name and parameters overload already exists
+            throw forbcc::exception{"parse of input file",
+                                    "invalid overload of method \"" + new_interface->codename() + "." +
+                                    new_method.name() + "\", the same exact signature is already present"};
         }
+
+        new_interface->insert(new_method.id(), new_method);
+    }
+
+    // Expects `;` to terminate declaration
+    skip_symbol(file, ";");
+
+    if (new_interface->list().empty()) {
+        throw forbcc::exception{"parse of input file", "interface \"" + new_interface->codename() + "\" is empty"};
     }
 }
 
-/* ***************************************** INTERFACE END ***************************************** */
+/* ************************************** INTERFACE END *************************************** */
 
-
-/* ***************************************** MODULE ***************************************** */
-
-static forbcc::module::ptr_t module_declaration(std::istream &file, const forbcc::module::ptr_t &parent);
-
-static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent_module);
-
-static void parse_module_body(std::istream &file, const forbcc::module::ptr_t &current_module);
+/* ****************************************** MODULE ****************************************** */
 
 static inline forbcc::module::ptr_t module_declaration(std::istream &file, const forbcc::module::ptr_t &parent) {
     forbcc::module::ptr_t new_module;
@@ -381,7 +587,7 @@ static inline forbcc::module::ptr_t module_declaration(std::istream &file, const
     skip_symbol(file, "{");
 
     if (!is_valid(name)) {
-        throw 37;
+        throw forbcc::exception{"parse of input file", "name \"" + name + "\" is not a valid name"};
     }
 
     if (parent->contains(name)) {
@@ -389,7 +595,9 @@ static inline forbcc::module::ptr_t module_declaration(std::istream &file, const
 
         if (new_module == nullptr) {
             // The symbol is already defined and it does not refer to a module!
-            throw 23;
+            throw forbcc::exception{"parse of input file",
+                                    "invalid declaration of \"" + name + "\", symbol already defined within module \"" +
+                                    parent->codename() + "\""};
         }
     } else {
         // A new entity must be created
@@ -421,18 +629,22 @@ static inline void parse_module_body(std::istream &file, const forbcc::module::p
 
         } else if (input_str == "}") {
             if (current_module == forbcc::module::global_module) {
-                throw 17;
+                throw forbcc::exception{"parse of input file",
+                                        "unexpected '}' in global module, expected EOF instead"};
             }
 
             keep_going = false;
         } else {
-            throw 42;
+            throw forbcc::exception{"parse of input file",
+                                    "unexpected symbol \"" + input_str + "\", expected a keyword instead"};
         }
     }
 
     if (!file && current_module != forbcc::module::global_module) {
         // Unexpected end of file
-        throw 73;
+        throw forbcc::exception{"parse of input file",
+                                "unexpected EOF before reaching the end of module \"" + current_module->codename() +
+                                "\""};
     }
 }
 
@@ -442,7 +654,24 @@ static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent
     parse_module_body(file, new_module);
 }
 
-/* ***************************************** MODULE END ***************************************** */
+/* **************************************** MODULE END **************************************** */
+
+/*
+ ***********************************************************************************************************************
+ *                                             PARSER CLASS IMPLEMENTATION                                             *
+ ***********************************************************************************************************************
+ */
+
+// For documentation, see corresponding header file
+
+/* ******************************************* STATIC VARIABLES/CONSTANTS ******************************************* */
+
+const std::string forbcc::keywords[]           = {"MODULE", "TYPE", "INTERFACE"};
+const std::string forbcc::direction_keywords[] = {"IN", "OUT", "INOUT"};
+const std::string forbcc::reserved_names[]     = {"datastream", "callstream"};
+const int forbcc::reserved_names_length = 2;
+
+/* **************************************************** METHODS ***************************************************** */
 
 void forbcc::parser::execute() {
     std::ifstream file{filename};

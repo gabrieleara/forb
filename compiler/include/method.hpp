@@ -15,6 +15,9 @@ namespace forbcc {
     // Forward declarations
     class code_ostream;
 
+    /// The type of the res_code as expected by the library. It is used as an ACK signal for call requests.
+    extern const std::string res_code_type;
+
     /// Defines a method of a forbcc::interface, which can have an arbitrary number of input, output or inout
     /// parameters.
     class method : public entity, public ordered_unique_list<parameter> {

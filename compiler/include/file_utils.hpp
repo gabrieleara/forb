@@ -8,6 +8,18 @@
 #include <string>
 
 namespace forbcc {
+    /// Extracts the dirname from a path string (UNIX-specific)
+    std::string dir_name(const std::string &filename);
+
+    /// Extracts the basename from a path string (UNIX-specific)
+    std::string base_name(const std::string &filename);
+
+    /// Removes the extension from a path string (UNIX-specific)
+    std::string remove_extension(const std::string &filename);
+
+    /// Returns the extension from a path string (UNIX-specific)
+    std::string get_extension(const std::string &filename);
+
     /// Creates a temporary file starting from the file name given as input using a specific syntax.
     /// The output file will be stored in /tmp and it will have a filename with the following syntax:
     /// basename_of_in_filename_without_extension.XXXXXXextension.

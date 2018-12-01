@@ -56,32 +56,32 @@ namespace forbcc {
     private:
 
         /// Prints stub class declaration
-        void print_stub_declaration(code_ostream &output) const;
+        void print_stub_declaration(code_ostream &out) const;
 
         /// Prints skeleton class declaration
-        void print_skeleton_declaration(code_ostream &output) const;
+        void print_skeleton_declaration(code_ostream &out) const;
 
         /// Prints the enum class used to identify methods called
-        void print_methods_enum(code_ostream &output) const;
+        void print_methods_enum(code_ostream &out) const;
 
         /// Prints the definition of static attributes needed by the factory pattern
-        void print_static_attributes_definition(code_ostream &output) const;
+        void print_static_attributes_definition(code_ostream &out) const;
 
         /// Prints match function definition needed by the factory pattern
-        void print_factory_match(code_ostream &output) const;
+        void print_factory_match(code_ostream &out) const;
 
         /// Prints create function definition needed by the factory pattern
-        void print_factory_create(code_ostream &output) const;
+        void print_factory_create(code_ostream &out) const;
 
         /// Prints narrow and assign functions definitions needed to downcast pointers to base stubs to pointers to the
         /// given interface's stub
-        void print_narrows(code_ostream &output) const;
+        void print_narrows(code_ostream &out) const;
 
         /// Prints stub methods
-        void print_stub_methods(code_ostream &output) const;
+        void print_stub_methods(code_ostream &out) const;
 
         /// Prints skeleton call dispatch method
-        void print_skeleton_method(code_ostream &output) const;
+        void print_skeleton_method(code_ostream &out) const;
 
         /// Returns the name of the stub class pointer type
         std::string name_ptr() const {

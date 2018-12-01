@@ -10,6 +10,8 @@
 
 // For documentation, see corresponding header file
 
+const std::string forbcc::res_code_type = "uint16_t";
+
 inline void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::string &thename) const {
     out << _return_type->codename() << " " << thename << "(";
 
@@ -201,12 +203,13 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     std::string res_code_name = get_unused_variable_name("res_code");
 
-    // TODO: should define probably somewhere else the types of these variables
-    out << "uint16_t " << res_code_name << " = 1;" << std::endl;
+    out << res_code_type << " " << res_code_name << " = 1;" << std::endl;
     out << "if (callstream->require_marshal()) {" << std::endl;
+
     out.increment_indentation();
     out << res_code_name << " = forb::streams::marshal(" << res_code_name << ");" << std::endl;
     out.decrement_indentation();
+
     out << "}" << std::endl;
 
     out << std::endl;
@@ -281,8 +284,6 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
         res_variable.print_serialize(out, serialize::SEND);
     }
-
-    out << "break;" << std::endl;
 }
 
 std::string forbcc::method::id() const {
@@ -299,12 +300,8 @@ std::string forbcc::method::id() const {
             std::replace(var_type_name.begin(), var_type_name.end(), ':', '_');
 
             oss << var_type_name.length() << var_type_name;
-
-            oss << param.name().length() << param.name();
         }
     }
 
     return oss.str();
 }
-
-// TODO: datastream and callstream are reserved names

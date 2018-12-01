@@ -38,7 +38,7 @@ namespace forbcc {
 
         /// Converts a pair of item_type and length to an unique identifier, to be used when storing known array types.
         static std::string to_identifier(const std::shared_ptr<const type> &item_type, const length_t length) {
-            // TODO: could this lead to conflitcs?
+            // FIXME: This could probably lead to conflicts, but they would be extremely rare.
             std::string codename = item_type->codename();
             std::replace(codename.begin(), codename.end(), ':', '_');
             return "_Forb_Array_" + item_type->codename() + "_D_" + std::to_string(length) + "_";

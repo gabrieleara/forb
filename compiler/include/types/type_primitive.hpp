@@ -5,7 +5,6 @@
 #include "module.hpp"
 #include "templates/shareable.hpp"
 
-// TODO: document this, add rule of the five and empty constructor
 namespace forbcc {
 
     /// Identifies one of the primitive types recognized by the library when parsing a FORB IDL file.

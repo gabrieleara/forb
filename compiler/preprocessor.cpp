@@ -5,6 +5,7 @@
 #include "preprocessor.hpp"
 
 #include "file_utils.hpp"
+#include "exception.hpp"
 
 #include <string>
 #include <fstream>
@@ -94,8 +95,12 @@ inline void remove_comments(const std::string &in_filename, const std::string &o
 
             // Cannot have a single '/' at the end of the file, it's a syntax error
             if (in_line.length() == index + 1) {
-                // "Error parsing line" + line_num + ", unexpected symbol at column" + index + ": '/'."
-                throw 17;
+                throw forbcc::exception{"parse of input file",
+                                        "unexpected symbol at line "
+                                        + std::to_string(line_num)
+                                        + " column "
+                                        + std::to_string(index)
+                                        + ": '/'"};
             }
 
             // Next character determines the type of the comment
@@ -112,8 +117,12 @@ inline void remove_comments(const std::string &in_filename, const std::string &o
                     in_comment = skip_multiline_comment(in_line, start_index);
                     break;
                 default:
-                    // "Error parsing line" + line_num + ", unexpected symbol at column" + index + ": '/'."
-                    throw 17;
+                    throw forbcc::exception{"parse of input file",
+                                            "unexpected symbol at line "
+                                            + std::to_string(line_num)
+                                            + " column "
+                                            + std::to_string(index)
+                                            + ": '/'"};
             }
         }
 
@@ -130,7 +139,7 @@ inline void remove_comments(const std::string &in_filename, const std::string &o
 
     // A multi-line comment was not closed!
     if (in_comment) {
-        throw 18;
+        throw forbcc::exception{"parse of input file", "unexpected EOF, expected end of multi-line comment via \"*/\""};
     }
 }
 
@@ -188,6 +197,8 @@ inline void expand_symbols(const std::string &in_filename, const std::string &ou
 void forbcc::preprocessor::execute() const {
     // Creates a file in /tmp to be used as support
     std::string middle_filename = make_temp(_in_filename, ".forbpp.middle");
+
+    assert(!middle_filename.empty() && "middle_filename argument cannot be empty!");
 
     remove_comments(_in_filename, middle_filename);
 
