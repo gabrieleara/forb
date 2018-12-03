@@ -5,11 +5,16 @@
 #ifndef LIBFORB_FORB_HPP
 #define LIBFORB_FORB_HPP
 
-#include "stream/stream.hpp"
-#include "stream/socket.hpp"
-#include "stream/shared_memory.hpp"
-#include "base_skeleton.hpp"
-#include "base_stub.hpp"
-#include "remote_registry.hpp"
+#include <forb/declarations.hpp>
+#include <forb/exception.hpp>
+
+#include <forb/stream/stream.hpp>
+#include <forb/stream/socket.hpp>
+#include <forb/stream/shared_memory.hpp>
+
+#include <forb/base_skeleton.hpp>
+#include <forb/base_stub.hpp>
+
+#include <forb/remote_registry.hpp>
 
 #endif //LIBFORB_FORB_HPP

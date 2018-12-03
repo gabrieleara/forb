@@ -2,8 +2,8 @@
 // Created by gabriele on 18/11/18.
 //
 
-#ifndef FORB_SHAREABLE_H
-#define FORB_SHAREABLE_H
+#ifndef FORBCC_SHAREABLE_H
+#define FORBCC_SHAREABLE_H
 
 #include <memory>
 
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif //FORB_SHAREABLE_H
+#endif //FORBCC_SHAREABLE_H

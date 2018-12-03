@@ -66,10 +66,10 @@ namespace forbcc {
         /**************************************************************************************************************/
 
         /// Does nothing, primitive types do not need to be declared.
-        void print_declaration(code_ostream &out __attribute__((unused))) const override {};
+        void print_declaration(code_ostream &) const override {};
 
         /// Does nothing, primitive types do not need to be defined.
-        void print_definition(code_ostream &out __attribute__((unused))) const override {};
+        void print_definition(code_ostream &) const override {};
 
         /// The codename for primitive types is defined by their actual type
         std::string codename() const final {

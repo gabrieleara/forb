@@ -56,7 +56,7 @@ static inline void print_source(const std::string &fname_header, const std::stri
 void forbcc::generator::execute() const {
     std::string simple_name  = remove_extension(
             base_name(_filename)
-            );
+    );
     std::string fname_source = simple_name + ".cpp";
     std::string fname_header = simple_name + ".hpp";
 

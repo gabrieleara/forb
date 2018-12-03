@@ -5,7 +5,7 @@
 #ifndef LIBFORB_DECLARATIONS_HPP
 #define LIBFORB_DECLARATIONS_HPP
 
-#include "cstdint" // uint16_t
+#include <cstdint> // uint16_t
 
 namespace forb {
 

@@ -63,4 +63,4 @@ namespace forbcc {
 
 } // namespace forbcc
 
-#endif //FORB_TYPE_H
+#endif //FORBCC_TYPE_H

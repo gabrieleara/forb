@@ -7,85 +7,73 @@
 
 #include <sys/types.h>
 
-#include "stream.hpp"
+#include <forb/stream/stream.hpp>
 
 namespace forb {
     namespace streams {
 
+        /// Implementation of the forbcc::strams::stream API that uses a Linux Shared Memory
+        /// to communicate.
+        /// NOTICE: this is an unidirectional stream, it can be used as a bidirectional
+        /// stream only if you are extremely sure there can be no overlap between various
+        /// phases of each program; in each phase, the stream shall be used only in one
+        /// direction.
         class shared_memory : public stream {
-            /* ********************** ALIAS DECLARATIONS ************************ */
-        private:
-
+            /* *********************************** ALIASES AND STATIC ATTRIBUTES ************************************ */
         public:
-            using index_t = std::size_t;
-            using size_t = std::size_t;
-            using key_t = ::key_t;
+            using index_t = stream::size_t;
+            using key_t = ::key_t; // Defined in sys/types.h
             using id_t = int;
 
-            /* ********************** TYPES DECLARATIONS ************************ */
         private:
-            // Forward declaration, see implementation file
+            /// The privileges of the shared memory file.
+            static constexpr int PRIVILEGES = 0666;
+
+            /// This is the forward declararion of the structure that will be allocated
+            /// within the shared memory. This pattern is similar to the private implementation
+            /// pattern (PIMPL), but only part of the implementation is forward-declared.
             struct shmem_data;
 
-            /* *************************** CONSTANTS **************************** */
+            /* ********************************************* ATTRIBUTES ********************************************* */
         private:
-            constexpr static int PRIVILEGES = 0666;
+            /// The key used to retrieve the shared memory.
+            key_t _key = 0;
 
-            /* *************************** ATTRIBUTES *************************** */
-        private:
-            key_t      key      = 0;
-            id_t       shmem_id = 0;
-            shmem_data *pointer = nullptr;
-            bool       is_owner = false;
+            /// The ID of the shared memory.
+            id_t _shmem_id = 0;
 
-            /* ************************ PRIVATE METHODS ************************* */
-        private:
-            void _get(key_t key, size_t size = 0, int flags = 0);
+            /// The pointer to the shared memory structure.
+            shmem_data *_pointer = nullptr;
 
-            void _init(size_t size);
+            /// Whether this object is the one that created the shared memory space or not.
+            bool _is_owner = false;
 
-            void _move_attributes(shared_memory &other) noexcept {
-                this->key      = other.key;
-                this->shmem_id = other.shmem_id;
-                this->pointer  = other.pointer;
-                this->is_owner = other.is_owner;
-
-                other.key      = 0;
-                other.shmem_id = 0;
-                other.pointer  = nullptr;
-                other.is_owner = false;
-
-                // Remember to move other members if necessary
-            };
-
-            /* ************************** CONSTRUCTOR *************************** */
+            /* ******************************************** CONSTRUCTORS ******************************************** */
         public:
+
+            /// Default constructor, creates an empty shared memory object, with no associated shared memory area.
+            /// It can be used in variable declarations that will then be overwritten with actual shared memory objects.
             shared_memory() = default;
 
-            /* ************************* MAKER METHODS ************************** */
-        public:
-            static shared_memory get(key_t key) {
-                shared_memory shmem{};
-                shmem._get(key);
-                return shmem;
+            /**********************************************************************************************************/
+
+            /// Virtual destructor that closes shared memory (if open).
+            ~shared_memory() override {
+                close();
             };
 
-            static shared_memory create(size_t size) {
-                shared_memory shmem{};
-                shmem._init(size);
-                return shmem;
-            };
-
-            /* *********************** RULE OF THE FIVE ************************* */
-
+            /// This class does not support copy construction.
             shared_memory(const shared_memory &other) = delete;
 
+            /// This class does not support copy assignment.
             shared_memory &operator=(const shared_memory &other) = delete;
 
+            /// This class supports move construction.
             shared_memory(shared_memory &&other) noexcept {
                 _move_attributes(other);
             };
 
+            /// This class supports move assignment.
             shared_memory &operator=(shared_memory &&other) noexcept {
                 if (this != &other) // Probably useless pointer-assignment check
                 {
@@ -99,29 +87,66 @@ namespace forb {
                 return *this;
             };
 
-            // TODO: this is a reminder to check manually whether close() is a noexcept call, since g++ has some problems
-            // with conditionally noexcept qualifiers in function members
-            ~shared_memory() noexcept override {
-                close();
+            /**********************************************************************************************************/
+
+            // Following static methods are implicitly inline
+
+            /// Retrieves a shared memory area from the given key.
+            static shared_memory get(key_t key) {
+                shared_memory shmem{};
+                shmem._get(key);
+                return shmem;
             };
 
-            /* ************************* PUBLIC METHODS ************************* */
+            /// Creates a new shared memory area with the given size.
+            static shared_memory create(size_t size) {
+                shared_memory shmem{};
+                shmem._init(size);
+                return shmem;
+            };
 
+            /**********************************************************************************************************/
+        private:
+            /// Method called by move constructor and move assignment operators.
+            void _move_attributes(shared_memory &other) noexcept;
+
+            /// Wrapper for the shmget function, which is able to create a new shared memory area or retrieve
+            /// an already-created shared memory location, depending on the input flags.
+            /// Arguments are the same as shmget, only flags should not specify any privileges
+            /// (they are automatically ORed with flags by this method).
+            void _get(key_t key, size_t size = 0, int flags = 0);
+
+            /// Creates a new shared memory location with the given size.
+            /// It automatically generates the shared memory key creating a temporary file and calling ftok, then calls
+            /// shared_memory::_get to actually create the shared memory area.
+            /// Finally it initializes the shared memory content (mutexes, counters and so on).
+            void _init(size_t size);
+
+        public:
+            /// Returns the key of the shared memory.
             key_t get_key() noexcept {
-                return key;
+                return _key;
             };
 
-            /* ************************ VIRTUAL METHODS ************************* */
-
+            /// Blocking call that fills the shared memory area with size data from the given buffer.
             void send(const void *buffer, size_t size) override;
 
+            /// Blocking call that fills buffer with size data received through the shared_memory area.
             void recv(void *buffer, size_t size) override;
 
-            // TODO: check whether the implementation should throw an exception when dealing with shmdt and so on
+            /// Closes the socket, called by the virtual destructor.
             void close() noexcept override;
 
-            type get_type() noexcept override {
+            /// Returns the type of the stream.
+            type get_type() const noexcept override {
                 return type::SHMEM;
+            };
+
+            /// Returns true if the execution platform requires marshalling before sending
+            /// data on the socket, false otherwise.
+            /// In this stream implementation, this method returns always false.
+            bool require_marshal() const override {
+                return false;
             };
 
         };

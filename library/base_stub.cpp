@@ -8,15 +8,13 @@
 #include <cstring>
 #include <arpa/inet.h>
 
-#include "forb/base_stub.hpp"
+#include <forb/base_stub.hpp>
 
 constexpr size_t MAX_IFADDRESS_LENGTH = (INET_ADDRSTRLEN > INET6_ADDRSTRLEN)
                                         ? INET_ADDRSTRLEN
                                         : INET6_ADDRSTRLEN;
 
-using base_stub = forb::base_stub;
-
-bool base_stub::is_local_address(const std::string &ip) {
+bool forb::base_stub::is_local_address(const std::string &ip) {
     struct ifaddrs *ifaddress_structure_list;
     struct ifaddrs *ifaddress_iterator;
     void           *address_member_ptr;
@@ -66,7 +64,7 @@ bool base_stub::is_local_address(const std::string &ip) {
 }
 
 
-void base_stub::init_call(call_id_t code) {
+void forb::base_stub::init_call(call_id_t code) {
     // First of all, initiate the remote call
     call_id_t stream_type = call_id_t_cast(datastream->get_type());
 
@@ -79,7 +77,7 @@ void base_stub::init_call(call_id_t code) {
     rpcstream->send(&code, sizeof(code));
 
     // Since now I use socket, I don't need additional code
-    // If I used shmem I should send simply the shmem key
+    // If I used shmem I should send simply the shmem _key
     // over the rpcstream communication
     if (datastream->get_type() == stream::type::SHMEM) {
         shared_memory::key_t key = dynamic_cast<shared_memory *>(datastream)->get_key();
@@ -88,7 +86,7 @@ void base_stub::init_call(call_id_t code) {
     }
 }
 
-void base_stub::wait_return() {
+void forb::base_stub::wait_return() {
     // TODO: change type of rescode
     uint16_t rescode;
     rpcstream->recv(&rescode, sizeof(rescode));
@@ -99,18 +97,18 @@ void base_stub::wait_return() {
     // TODO: do something with this code
 }
 
-std::vector<base_stub *> &base_stub::_protos() {
-    static std::vector<base_stub *> _prototypes;
+std::vector<forb::base_stub *> &forb::base_stub::_protos() {
+    static std::vector<forb::base_stub *> _prototypes;
     return _prototypes;
 }
 
-base_stub *base_stub::_create(const std::string &type) {
-    for (auto p : base_stub::_protos()) {
+forb::base_stub *forb::base_stub::_create(const std::string &type) {
+    for (auto p : forb::base_stub::_protos()) {
         if (p->_match(type)) {
             return p->_create_empty();
         }
     }
 
-    throw 42;
+    return nullptr;
 }
 

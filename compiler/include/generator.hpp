@@ -2,8 +2,8 @@
 // Created by gabriele on 01/12/18.
 //
 
-#ifndef FORB_GENERATOR_H
-#define FORB_GENERATOR_H
+#ifndef FORBCC_GENERATOR_H
+#define FORBCC_GENERATOR_H
 
 #include <string>
 
@@ -24,4 +24,4 @@ namespace forbcc {
 }
 
 
-#endif //FORB_GENERATOR_H
+#endif //FORBCC_GENERATOR_H

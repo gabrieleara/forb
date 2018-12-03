@@ -1,11 +1,8 @@
 # CMake Version Required
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.2)
 
 # Project Name
 project(forb)
-
-# The C++ Standard Version
-set(CMAKE_CXX_STANDARD 11)
 
 # Setting default compiling mode to Release
 # To compile in Debug mode use cmake -DCMAKE_BUILD_TYPE=Debug
@@ -16,14 +13,12 @@ endif ()
 
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
-# Flags change depending on DEBUG or RELEASE compilation
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra --pedantic") #-Werror
-# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-
 # Each subdirectory contains a target
 add_subdirectory(compiler)
 add_subdirectory(library)
 add_subdirectory(tests)
+
+####################### DOXYGEN #######################
 
 # Documentation will be built only in release mode
 if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
@@ -39,13 +34,13 @@ if (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease")
 
         # Request to configure the file
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-        message("Doxygen build started")
+        message("Doxygen build started for project ${CMAKE_PROJECT_NAME}")
 
         # Note the option ALL which allows to build the docs together with the application
         add_custom_target(doc_doxygen ALL
                 COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                COMMENT "Generating API documentation with Doxygen"
+                COMMENT "Generating API documentation with Doxygen for project ${CMAKE_PROJECT_NAME}"
                 VERBATIM)
     else (DOXYGEN_FOUND)
         message("Doxygen need to be installed to generate the doxygen documentation")

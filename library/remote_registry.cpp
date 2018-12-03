@@ -4,15 +4,13 @@
 
 #include <fstream>
 
-#include "json.hpp"
-#include "forb/remote_registry.hpp"
+#include <json.hpp>
+#include <forb/remote_registry.hpp>
 
 using json = nlohmann::json;
-using remote_registry = forb::remote_registry;
 
-
-remote_registry::remote_registry(std::string confname) {
-    // FIXME: wrap exception handling
+forb::remote_registry::remote_registry(std::string confname) {
+    // TODO: wrap exception handling
 
     std::ifstream conf_file{confname};
     json          conf = json::parse(conf_file);

@@ -3,15 +3,13 @@
 //
 
 #include <forb/stream/shared_memory.hpp>
-#include "forb/base_skeleton.hpp"
-
-using base_skeleton = forb::base_skeleton;
+#include <forb/base_skeleton.hpp>
 
 using stream = forb::streams::stream;
 using ssocket = forb::streams::socket;
 using shared_memory = forb::streams::shared_memory;
 
-void base_skeleton::listen_thread_body(base_skeleton *impl) {
+void forb::base_skeleton::listen_thread_body(forb::base_skeleton *impl) {
     bool should_continue = true;
     {
         std::lock_guard<std::mutex> lock{impl->calls_mutex};
@@ -24,7 +22,7 @@ void base_skeleton::listen_thread_body(base_skeleton *impl) {
 
             std::lock_guard<std::mutex> lock{impl->calls_mutex};
             if (impl->can_accept) {
-                std::thread t{base_skeleton::call_thread_body, impl, std::move(callsocket)};
+                std::thread t{forb::base_skeleton::call_thread_body, impl, std::move(callsocket)};
                 impl->running_calls.push_back(std::move(t));
             } else {
                 should_continue = false;
@@ -34,10 +32,9 @@ void base_skeleton::listen_thread_body(base_skeleton *impl) {
     }
 }
 
+forb::call_id_t shmem_mask = forb::call_id_t_cast(stream::type::SHMEM);
 
-constexpr forb::call_id_t shmem_mask = forb::call_id_t_cast(stream::type::SHMEM);
-
-void base_skeleton::call_thread_body(base_skeleton *impl, ssocket callsocket) {
+void forb::base_skeleton::call_thread_body(forb::base_skeleton *impl, ssocket callsocket) {
 
     try {
         while (true) {// TODO: change
@@ -81,20 +78,20 @@ void base_skeleton::call_thread_body(base_skeleton *impl, ssocket callsocket) {
     // TODO: Should also remove the thread from the vector
 }
 
-forb::streams::socket base_skeleton::accept_call() {
+forb::streams::socket forb::base_skeleton::accept_call() {
     return incoming_calls.accept();
 }
 
-void base_skeleton::start_server() {
+void forb::base_skeleton::start_server() {
     // TODO: should check whether the server is already running
 
     can_accept     = true;
     incoming_calls = forb::streams::socket::make_server(port, queuesize);
-    listen_thread  = std::thread{&base_skeleton::listen_thread_body, this};
+    listen_thread  = std::thread{&forb::base_skeleton::listen_thread_body, this};
 }
 
 // TODO: actually call threads never terminate, thus another mechanism is needed to terminate the program
-void base_skeleton::stop_server() {
+void forb::base_skeleton::stop_server() {
     {
         std::lock_guard<std::mutex> lock{calls_mutex};
         can_accept = false;

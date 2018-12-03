@@ -115,4 +115,4 @@ namespace forbcc {
 }
 
 
-#endif //FORB_CODE_OSSTREAM_H
+#endif //FORBCC_CODE_OSSTREAM_H

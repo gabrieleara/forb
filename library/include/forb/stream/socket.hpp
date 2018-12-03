@@ -1,5 +1,5 @@
-#ifndef __forb_socket_hpp__
-#define __forb_socket_hpp__
+#ifndef LIBFORB_SOCKET_HPP
+#define LIBFORB_SOCKET_HPP
 
 #include <string>
 #include <unistd.h> // close
@@ -7,14 +7,15 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#include "stream.hpp"
+#include <cassert>
+#include <forb/stream/stream.hpp>
 
 namespace forb {
     namespace streams {
 
         // Returns true if the machine is big endian
-        // (same byte order of network endianess)
-        inline bool is_big_endian(void) {
+        // (same byte order of network endianess).
+        inline bool is_big_endian() {
             union {
                 uint32_t i;
                 char     c[4];
@@ -23,274 +24,179 @@ namespace forb {
             return bint.c[0] == 1;
         }
 
+        /// C++ wrapper of the Socket POSIX API, which uses IPv4 and blocking communication.
         class socket : public virtual stream {
+            /* *********************************** ALIASES AND STATIC ATTRIBUTES ************************************ */
+        private:
             using sockaddr_in_t = struct sockaddr_in;
             using sockaddr_t = struct sockaddr;
 
+            /// Structure used to indicate that the socket shall be
+            /// actually created by the constructor (since there
+            /// cannot be two default constructors).
+            /// This is actually a technique frequently used within
+            /// the standard library too when useless arguments are
+            /// needed to overload methods.
+            struct socket_create_t {
+            };
+
+            // Constants used within the class
             static constexpr int       AF_TYPE       = AF_INET;
             static constexpr int       PROTOCOL      = SOCK_STREAM;
             static constexpr socklen_t SOCKADDR_SIZE = sizeof(sockaddr_in_t);
 
-            int sock_fd;
+            /* ********************************************* ATTRIBUTES ********************************************* */
+        private:
+            /// The file descriptor of the current socket
+            int _sock_fd = 0;
 
-            // Following data is used only when binding address/port to the socket
-            std::string local_address = "";
-            int         local_port    = 0;
+            /// The address associated with the current socket, to be used with bind
+            std::string _local_address = "";
 
-            // If the socket is used to communicate with a remote host, its data will be
-            // put here
-            std::string remote_address = "";
-            int         remote_port    = 0;
+            /// The port number associated with the current socket, to be used with bind
+            int _local_port = 0;
+
+            /// The address of the remote host, if a remote host is connected
+            std::string _remote_address = "";
+
+            /// The port number of the remote host, if a remote host is connected
+            int _remote_port = 0;
+
+            /// Marks a server socket
+            bool _is_server = false;
+
+            /* ******************************************** CONSTRUCTORS ******************************************** */
+        private:
+            /// Constructs a new socket. Default constructor creates an
+            /// non-initialized socket, which can be useful when declaring
+            /// socket arrays or when the actual socket will be assigned later.
+            /// socket(true) constructor will instead create a new socket,
+            /// which can be later binded to a certain address or connected
+            /// to a remote host.
+            /// NOTICE: the missing "explicit" keyword is intended.
+            socket(socket_create_t);
+
+            /// Constructs a new communication socket that is already connected to a
+            /// remote host, usually invoked as a result of the accept.
+            socket(int sock_fd, const std::string &remote_address, int remote_port);
+
+            /// Constructs a new communication (client) socket, which will be connected to the
+            /// remote host specified by the address/port pair.
+            socket(const std::string &remote_address, int remote_port);
 
         public:
-            socket(bool create = false) {
-                if (create) {
-                    sock_fd = ::socket(AF_TYPE, PROTOCOL, 0);
-                } else {
-                    sock_fd = 0;
-                }
+            /// Default constructor, creates an empty socket, which cannot be used to exchange data.
+            socket() = default;
 
-                if (sock_fd < 0)
-                    throw 18;
+            /**********************************************************************************************************/
+
+            /// Virtual destructor that closes the socket (if open).
+            ~socket() override {
+                close();
             };
 
-            socket(const std::string &remote_address, int remote_port)
-                    : socket(true) {
-                this->remote_address = remote_address;
-                this->remote_port    = remote_port;
-            }
-
-        private:
-            socket(const int sock_fd,
-                   const std::string &remote_address,
-                   const int remote_port) {
-                this->sock_fd        = sock_fd;
-                this->remote_address = remote_address;
-                this->remote_port    = remote_port;
-
-                // Checking if the socket was created correctly
-                if (sock_fd < 0)
-                    throw 18;
-            };
-
-        private:
-            inline sockaddr_in_t build_sockaddr(const std::string &address, const int port) {
-                sockaddr_in_t address_structure;
-
-                address_structure.sin_family = AF_TYPE;
-                address_structure.sin_port   = htons(port);
-
-                if (address.length() < 1) {
-                    // We don't care about which address, only the port
-                    address_structure.sin_addr.s_addr = INADDR_ANY;
-                } else {
-                    // We convert the text-based address in a network address
-                    if (::inet_pton(AF_TYPE, address.c_str(), &address_structure.sin_addr.s_addr) == 0)
-                        throw 10;
-                }
-
-                return address_structure;
-            }
-
-        private:
-            void bind(int port) {
-                return bind("", port);
-            };
-
-            void bind(const std::string &address, const int port) {
-                sockaddr_in_t local_address_structure;
-
-                local_address_structure = build_sockaddr(address, port);
-
-                // Force reusage of already binded ports
-                int option = 1;
-                setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
-
-                int res = ::bind(sock_fd, reinterpret_cast<sockaddr_t *>(&local_address_structure), SOCKADDR_SIZE);
-
-                if (res != 0)
-                    throw 17;
-
-                local_address = address;
-                local_port    = port;
-            };
-
-            void listen(int listen_queue_size = 10) {
-                int res = ::listen(sock_fd, listen_queue_size);
-
-                if (res != 0)
-                    throw 42;
-            };
-
-            void connect(const std::string &address, const int port) {
-                sockaddr_in_t address_structure = build_sockaddr(address, port);
-
-                int res = ::connect(sock_fd,
-                                    reinterpret_cast<sockaddr_t *>(&address_structure), SOCKADDR_SIZE);
-
-                // std::cout << "Ma qui ci arrivo?" <<std::endl;
-
-                remote_address = address;
-                remote_port    = port;
-
-                if (res != 0)
-                    throw (42);
-            };
-
-            void _move_attributes(socket &other) noexcept {
-                this->sock_fd        = other.sock_fd;
-                this->local_address  = other.local_address;
-                this->local_port     = other.local_port;
-                this->remote_address = other.remote_address;
-                this->remote_port    = other.remote_port;
-
-                other.sock_fd        = 0;
-                other.local_address  = "";
-                other.local_port     = 0;
-                other.remote_address = "";
-                other.remote_port    = 0;
-
-                // Remember to move other members if necessary
-            };
-
-        public:
-            // I delete copy constructor/assignment
+            /// This class does not support copy construction.
             socket(const socket &other) = delete;
 
+            /// This class does not support copy assignment.
             socket &operator=(const socket &other) = delete;
 
-            // But define move constructor/assignment
-            socket(socket &&other) noexcept {
-                _move_attributes(other);
-            };
+            /// This class supports move construction.
+            /// The moved socket gets reset to the default values for each of its attributes.
+            socket(socket &&other) noexcept;
 
-            socket &operator=(socket &&other) noexcept {
-                if (this != &other) // Probably useless self-assignment check
-                {
-                    // If the same memory space is reused,
-                    // the old socket must be closed
-                    close();
+            /// This class supports move assignment.
+            /// The moved socket gets reset to the default values for each of its attributes.
+            socket &operator=(socket &&other) noexcept;
 
-                    _move_attributes(other);
-                }
+            /**********************************************************************************************************/
 
-                return *this;
-            };
+            // Following static methods are implicitly inline
 
-            virtual ~socket() override {
-                close();
-            }
-
-            static socket make_socket() {
-                return socket{true};
-            }
-
+            /// Creates a new server socket.
+            /// The new server will be binded to any address on the local machine.
+            /// The listen_queue_size argument is optional and defaulted to 10.
             static socket make_server(int port, int listen_queue_size = 10) {
                 return make_server("", port, listen_queue_size);
             }
 
-            static socket make_server(const std::string &address, const int port, const int listen_queue_size = 10) {
-                socket new_socket{true};
-
+            /// Creates a new server socket.
+            /// The new server will be binded to the address specified as argument, or to any address on the local
+            /// machine if an empty string is given as argument.
+            /// The listen_queue_size argument is optional and defaulted to 10.
+            static socket make_server(const std::string &address, int port, int listen_queue_size = 10) {
+                socket new_socket = socket_create_t();
                 new_socket.bind(address, port);
                 new_socket.listen(listen_queue_size);
                 return new_socket;
             }
 
-            static socket make_client(const std::string &address, const int port) {
-                socket new_socket{true};
+            /// Creates a new client socket, connected to the specified remote host.
+            static socket make_client(const std::string &address, int port) {
+                socket new_socket = socket_create_t();
                 new_socket.connect(address, port);
                 return new_socket;
             }
 
-            // TODO: should check whether this is a server socket or a client socket
-            socket accept() {
-                sockaddr_in_t remote_address;
-                socklen_t     sockaddr_size_var = SOCKADDR_SIZE;
+            /**********************************************************************************************************/
+        private:
+            /// Builds a struct sockaddr_in object starting from the given address
+            /// and port number pair.
+            static inline sockaddr_in_t build_sockaddr(const std::string &address, int port);
 
-                std::memset(&remote_address, 0, SOCKADDR_SIZE);
+            /// Utility function used to perform move construction and move assignment operations
+            void _move_attributes(socket &other) noexcept;
 
-                int newsock_fd = ::accept(sock_fd,
-                                          reinterpret_cast<struct sockaddr *>(&remote_address),
-                                          &sockaddr_size_var);
-
-                if (newsock_fd < 0)
-                    throw (17);
-
-                char remote_addr_cstr[16];
-
-                auto res = ::inet_ntop(AF_TYPE,
-                                       &remote_address,
-                                       remote_addr_cstr,
-                                       sockaddr_size_var);
-
-                if (res == 0)
-                    throw (42);
-
-                return socket{newsock_fd, std::string{remote_addr_cstr}, remote_port};
+            /*
+            /// Binds a socket to the given port number and to any address on the local machine.
+            void bind(int port) {
+                return bind("", port);
             };
+             */
 
-            // NOTICE: blocking
-            virtual void send(const void *buffer, std::size_t size) override {
-                auto    buffer_ptr    = reinterpret_cast<const unsigned char *>(buffer);
-                size_t  remaining     = size;
-                ssize_t how_many_sent = 0;
+            /// Binds a socket to the given address and port number pair.
+            /// If address argument is equal to an empty string, then any address associated with
+            /// the machine will be binded to this socket.
+            void bind(const std::string &address, int port);
 
-                while (remaining > 0 &&
-                       (how_many_sent = ::send(sock_fd,
-                                               buffer_ptr,
-                                               remaining,
-                                               0)) > 0) {
-                    if (size_t(how_many_sent) > remaining)
-                        throw (12); // Underflow
+            /// Marks the socket as a server socket.
+            void listen(int listen_queue_size);
 
-                    remaining -= how_many_sent;
-                    buffer_ptr += how_many_sent;
-                }
+            /// Connects to the remote host identified by the given address and port number pair.
+            void connect(const std::string &address, int port);
 
-                if (remaining != 0)
-                    throw (42);
-            };
+        public:
+            /// Performs the accept operation on the given server socket. Socket must be a server socket (i.e. a socket
+            /// that executed a bind and a listen before).
+            socket accept();
 
-            // NOTICE: blocking
-            virtual void recv(void *buffer, std::size_t size) override {
-                // auto    buffer_ptr    = reinterpret_cast<std::byte *>(buffer); // C++17
-                auto    buffer_ptr    = reinterpret_cast<unsigned char *>(buffer); // C++98
-                size_t  remaining     = size;
-                ssize_t how_many_recv = 0;
+            /// Blocking wrapper of the POSIX send function.
+            /// It repeats the underlying call until all data are sent or an error occurs.
+            void send(const void *buffer, std::size_t size) override;
 
-                while (remaining > 0 &&
-                       (how_many_recv = ::read(sock_fd,
-                                               buffer_ptr,
-                                               remaining)) > 0) {
-                    if (size_t(how_many_recv) > remaining)
-                        throw (12); // Underflow
-                    remaining -= how_many_recv;
-                    buffer_ptr += how_many_recv;
-                }
+            /// Blocking wrapper of the POSIX recv function.
+            /// It repeats the underlying call until all data are received or an error occurs.
+            void recv(void *buffer, std::size_t size) override;
 
-                if (remaining != 0)
-                    throw (42);
-            };
+            /// Closes the socket, called by the virtual destructor.
+            void close() noexcept override;
 
-            virtual void close() override {
-                if (sock_fd > 0) {
-                    ::close(sock_fd);
-                    sock_fd = 0;
-                }
-            };
-
-            type get_type() override {
+            /// Returns the type of the stream.
+            type get_type() const override {
                 return type::SOCKET;
             };
 
-            // Sending over a network requires byteswap if the machine is not
-            // big endian
-            virtual bool require_marshal() { return !is_big_endian(); };
+            /// Returns true if the execution platform requires marshalling before sending
+            /// data on the socket, false otherwise.
+            /// Sending over a network requires marshalling (byteswapping) if the machine is not
+            /// big endian.
+            bool require_marshal() const override {
+                return !is_big_endian();
+            };
         };
 
     } // namespace streams
 
 } // namespace forb
 
-#endif // #ifndef __forb_socket_hpp__
+#endif // #ifndef LIBFORB_SOCKET_HPP

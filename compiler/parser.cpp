@@ -263,13 +263,14 @@ static inline forbcc::type_array::ptr_const_t parse_type_array(
 
     try {
         length = stol(input_str);
-    } catch(std::invalid_argument ex) {
+    } catch (std::invalid_argument ex) {
         length = -1;
     }
 
     if (length < 1) {
         throw forbcc::exception{"parse of input file",
-                                "expected strictly positive integer as array length, parsed \"" + input_str + "\" instead"};
+                                "expected strictly positive integer as array length, parsed \"" + input_str +
+                                "\" instead"};
     }
 
     skip_symbol(file, "]");

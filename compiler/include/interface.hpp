@@ -121,4 +121,4 @@ namespace forbcc {
 } // namespace forbcc
 
 
-#endif //FORB_INTERFACE_H
+#endif //FORBCC_INTERFACE_H

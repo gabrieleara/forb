@@ -2,8 +2,8 @@
 // Created by gabriele on 28/11/18.
 //
 
-#ifndef FORB_FILE_UTIL_H
-#define FORB_FILE_UTIL_H
+#ifndef FORBCC_FILE_UTIL_H
+#define FORBCC_FILE_UTIL_H
 
 #include <string>
 
@@ -30,4 +30,4 @@ namespace forbcc {
     void remove(const std::string &filename);
 }
 
-#endif //FORB_FILE_UTIL_H
+#endif //FORBCC_FILE_UTIL_H

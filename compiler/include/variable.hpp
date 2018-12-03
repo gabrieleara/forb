@@ -58,7 +58,7 @@ namespace forbcc {
         };
 
         /// Does nothing, variables do not require definition.
-        void print_definition(code_ostream &out __attribute__((unused))) const override {};
+        void print_definition(code_ostream &) const override {};
 
         /// Prints the variable declaration, proxy to forbcc::type::print_var_reference, which is a virtual function,
         /// so the actual type of the variable will handle its print.

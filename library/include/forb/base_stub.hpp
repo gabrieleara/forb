@@ -17,8 +17,6 @@
 namespace forb {
     // NOTICE: should only be used for integer types
 
-    // TODO: thread safety using a mutex to avoid concurrent calls
-
     // Forward declaration of registry class
     class remote_registry;
 
@@ -35,7 +33,7 @@ namespace forb {
         shared_memory _shmem;
 
     protected:
-        std::mutex    _mutex;
+        std::mutex _mutex;
 
     public:
         // Rule of the five

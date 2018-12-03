@@ -7,16 +7,16 @@
 
 #include <map>
 
-#include "base_stub.hpp"
+#include <forb/base_stub.hpp>
 
 namespace forb {
 
     class remote_registry {
         struct remote_obj_entry {
-            std::string _namespace;
-            std::string _class;
-            std::string _ip;
-            int         _port;
+            std::string _namespace = "";
+            std::string _class     = "";
+            std::string _ip        = "";
+            int         _port      = 0;
         };
 
         using obj_map_t = std::map<std::string, remote_obj_entry>;
@@ -30,7 +30,7 @@ namespace forb {
 
             try {
                 entry = remote_objects.at(obj_name);
-            } catch (std::out_of_range ex) {
+            } catch (std::out_of_range &ex) {
                 return nullptr;
             }
 

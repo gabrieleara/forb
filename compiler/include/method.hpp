@@ -68,7 +68,7 @@ namespace forbcc {
         /// according to requirements!
         /// The function was defined only because this class is a subclass of the forbcc::entity class, which has a pure
         /// virtual print_definition method.
-        void print_definition(code_ostream &out __attribute__((unused))) const override {};
+        void print_definition(code_ostream &) const override {};
 
         /// Prints the virtual declaration of a method
         void print_virtual_declaration(code_ostream &out) const;

@@ -2,8 +2,8 @@
 // Created by gabriele on 16/11/18.
 //
 
-#ifndef FORB_UNIQUES_LIST_H
-#define FORB_UNIQUES_LIST_H
+#ifndef FORBCC_UNIQUES_LIST_H
+#define FORBCC_UNIQUES_LIST_H
 
 #include <string>
 #include <map>
@@ -77,4 +77,4 @@ public:
 };
 
 
-#endif //FORB_UNIQUES_LIST_H
+#endif //FORBCC_UNIQUES_LIST_H

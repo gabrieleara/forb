@@ -1,16 +1,15 @@
 //
-// Created by gabriele on 01/12/18.
+// Created by gabriele on 03/12/18.
 //
 
-#ifndef FORBCC_EXCEPTION_H
-#define FORBCC_EXCEPTION_H
+#ifndef FORB_EXCEPTION_H
+#define FORB_EXCEPTION_H
 
 #include <string>
 #include <exception>
 
-namespace forbcc {
-
-    /// Custom exception type used in the FORB IDL compiler.
+namespace forb {
+    /// Custom exception type used in FORB library.
     class exception : public std::exception {
         /// The description of the exception.
         std::string _what;
@@ -18,10 +17,7 @@ namespace forbcc {
     public:
         /// Constructs a new exception; the first argument represents the action that was performed when the exception
         /// was thrown, while the second one is a more detailed description.
-        exception(const std::string &when, const std::string &cause)
-                : std::exception() {
-            _what = "Error during " + when + ": " + cause + ".";
-        };
+        explicit exception(const std::string &cause) : std::exception(), _what(cause) {};
 
         /// Virtual destructor
         ~exception() override = default;
@@ -47,4 +43,5 @@ namespace forbcc {
 }
 
 
-#endif //FORBCC_EXCEPTION_H
+#endif //FORB_EXCEPTION_H
+
