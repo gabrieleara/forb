@@ -1,8 +1,8 @@
 #ifndef FORBCC_TYPE_H
 #define FORBCC_TYPE_H
 
-#include "../entity.hpp"
-#include "../module.hpp"
+#include <entity.hpp>
+#include <module.hpp>
 
 namespace forbcc {
 

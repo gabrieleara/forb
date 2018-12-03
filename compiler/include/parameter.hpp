@@ -6,7 +6,7 @@
 #define FORBCC_PARAMETER_H
 
 #include <algorithm> // std::transform
-#include "variable.hpp"
+#include <variable.hpp>
 
 namespace forbcc {
     // Forward declaration

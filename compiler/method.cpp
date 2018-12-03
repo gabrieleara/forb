@@ -2,11 +2,8 @@
 // Created by gabriele on 14/11/18.
 //
 
-#include "method.hpp"
-
-#include "code_ostream.hpp"
-
-#include <algorithm>
+#include <method.hpp>
+#include <code_ostream.hpp>
 
 // For documentation, see corresponding header file
 

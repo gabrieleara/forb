@@ -2,11 +2,11 @@
 // Created by gabriele on 15/11/18.
 //
 
-#include "code_ostream.hpp"
+#include <code_ostream.hpp>
 
-#include "interface.hpp"
-#include "parameter.hpp"
-#include "method.hpp"
+#include <interface.hpp>
+#include <parameter.hpp>
+#include <method.hpp>
 
 // For documentation, see corresponding header file
 

@@ -1,7 +1,7 @@
 #include <string>
 
-#include "code_ostream.hpp"
-#include "types/type.hpp"
+#include <code_ostream.hpp>
+#include <types/type.hpp>
 
 // For documentation, see corresponding header file
 

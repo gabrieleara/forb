@@ -1,9 +1,10 @@
 #ifndef FORBCC_PRIMITIVE_TYPE_H
 #define FORBCC_PRIMITIVE_TYPE_H
 
-#include "type.hpp"
-#include "module.hpp"
-#include "templates/shareable.hpp"
+#include <templates/shareable.hpp>
+#include <types/type.hpp>
+#include <module.hpp>
+
 
 namespace forbcc {
 

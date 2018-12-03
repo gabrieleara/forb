@@ -5,11 +5,11 @@
 #ifndef FORBCC_METHOD_H
 #define FORBCC_METHOD_H
 
-#include "entity.hpp"
-#include "templates/ordered_unique_list.hpp"
+#include <entity.hpp>
+#include <templates/ordered_unique_list.hpp>
 
-#include "interface.hpp"
-#include "parameter.hpp"
+#include <interface.hpp>
+#include <parameter.hpp>
 
 namespace forbcc {
     // Forward declarations

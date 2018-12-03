@@ -7,9 +7,9 @@
 
 #include <string>
 
-#include "entity.hpp"
-#include "templates/ordered_unique_list.hpp"
-#include "templates/shareable.hpp"
+#include <entity.hpp>
+#include <templates/ordered_unique_list.hpp>
+#include <templates/shareable.hpp>
 
 namespace forbcc {
 

@@ -5,12 +5,12 @@
 #include <algorithm>
 #include <cassert>
 
-#include "type.hpp"
-#include "templates/shareable.hpp"
+#include <types/type.hpp>
+#include <templates/shareable.hpp>
 
 namespace forbcc {
 
-    /// Identifies an array of a given type, to be used in forbcc::method or in forbcc::type_custom definitions.
+    /// Identifies an array of a given type, to be used in forbcc::method or in forbcc::type_struct definitions.
     class type_array : public type, public shareable<type_array> {
 
         /* ************************************************* ALIAS ************************************************** */

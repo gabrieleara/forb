@@ -2,11 +2,6 @@
 // Created by gabriele on 20/11/18.
 //
 
-#include "preprocessor.hpp"
-
-#include "file_utils.hpp"
-#include "exception.hpp"
-
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -15,6 +10,11 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+
+#include <preprocessor.hpp>
+
+#include <file_utils.hpp>
+#include <exception.hpp>
 
 // For documentation of forbcc::preprocessor class, see corresponding header file
 

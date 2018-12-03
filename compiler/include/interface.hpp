@@ -5,10 +5,10 @@
 #ifndef FORBCC_INTERFACE_H
 #define FORBCC_INTERFACE_H
 
-#include "entity.hpp"
-#include "module.hpp"
-#include "templates/ordered_unique_list.hpp"
-#include "templates/shareable.hpp"
+#include <entity.hpp>
+#include <module.hpp>
+#include <templates/ordered_unique_list.hpp>
+#include <templates/shareable.hpp>
 
 namespace forbcc {
     // Forward declarations

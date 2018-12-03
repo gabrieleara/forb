@@ -1,14 +1,14 @@
 #ifndef FORBCC_VARIABLE_H
 #define FORBCC_VARIABLE_H
 
-#include "entity.hpp"
-#include "types/type.hpp"
-#include "templates/shareable.hpp"
+#include <entity.hpp>
+#include <types/type.hpp>
+#include <templates/shareable.hpp>
 
 namespace forbcc {
     class code_ostream;
 
-    /// Represents either an attribute of a forbcc::type_custom class or an automatic variable declared within a
+    /// Represents either an attribute of a forbcc::type_struct class or an automatic variable declared within a
     /// function
     class variable : public entity, public shareable<variable> {
         /// The type associated with the variable.

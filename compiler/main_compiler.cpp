@@ -4,14 +4,14 @@
 
 #include <iostream>
 
-#include "generator.hpp"
-#include "code_ostream.hpp"
-#include "preprocessor.hpp"
-#include "parser.hpp"
+#include <generator.hpp>
+#include <code_ostream.hpp>
+#include <preprocessor.hpp>
+#include <parser.hpp>
 
-#include "module.hpp"
-#include "exception.hpp"
-#include "file_utils.hpp"
+#include <module.hpp>
+#include <exception.hpp>
+#include <file_utils.hpp>
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

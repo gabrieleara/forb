@@ -7,20 +7,19 @@
 #include <string>
 #include <regex>
 
-#include "parser.hpp"
+#include <parser.hpp>
 
-#include "module.hpp"
-#include "interface.hpp"
+#include <exception.hpp>
+#include <module.hpp>
+#include <interface.hpp>
+#include <parameter.hpp>
+#include <method.hpp>
+#include <variable.hpp>
 
-#include "variable.hpp"
-#include "parameter.hpp"
-#include "method.hpp"
-
-#include "types/type.hpp"
-#include "types/type_array.hpp"
-#include "types/type_struct.hpp"
-#include "types/type_primitive.hpp"
-#include "exception.hpp"
+#include <types/type.hpp>
+#include <types/type_array.hpp>
+#include <types/type_struct.hpp>
+#include <types/type_primitive.hpp>
 
 /*
  ***********************************************************************************************************************

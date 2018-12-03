@@ -1,7 +1,7 @@
-#include "types/type_struct.hpp"
+#include <types/type_struct.hpp>
 
-#include "code_ostream.hpp"
-#include "variable.hpp"
+#include <code_ostream.hpp>
+#include <variable.hpp>
 
 // For documentation, see corresponding header file
 

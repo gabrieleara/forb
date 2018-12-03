@@ -4,12 +4,12 @@
 #include <string>
 #include <map>
 
-#include "type.hpp"
-#include "module.hpp"
-#include "templates/ordered_unique_list.hpp"
-#include "templates/shareable.hpp"
+#include <templates/ordered_unique_list.hpp>
+#include <templates/shareable.hpp>
 
-#include "variable.hpp"
+#include <types/type.hpp>
+#include <module.hpp>
+#include <variable.hpp>
 
 namespace forbcc {
     /// Structure types are basically structures defined by the user that can be transferred between library components

@@ -2,13 +2,13 @@
 // Created by gabriele on 01/12/18.
 //
 
-#include "generator.hpp"
-
 #include <algorithm>         // std::transform
 #include <fstream>
-#include "file_utils.hpp"
-#include "module.hpp"
-#include "code_ostream.hpp"
+
+#include <generator.hpp>
+#include <file_utils.hpp>
+#include <module.hpp>
+#include <code_ostream.hpp>
 
 /// Converts a string to uppercase
 static inline std::string str_toupper(std::string s) {
