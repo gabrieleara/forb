@@ -7,9 +7,7 @@
 // #include <cstddef>
 // #include <memory>
 
-// NOTICE: this is used for testing the library before installation, to use the library after installation please use
-// #include <forb/forb.hpp>
-#include <forb/forb.hpp> // "forb.hpp"
+#include <forb/forb.hpp>
 #include "rpc_class_manual.hpp"
 
 using ssocket = forb::streams::socket;
@@ -70,8 +68,8 @@ bool example::rpc_class::_match(const std::string &type) const {
 }
 
 // Factory method
-forb::base_stub *example::rpc_class::_create_empty() const {
-    return new rpc_class{};
+forb::remote_var example::rpc_class::_create_empty() const {
+    return std::make_unique<example::rpc_class>();
 }
 
 
@@ -138,7 +136,7 @@ void example::rpc_class_skeleton::execute_call(forb::call_id_t code,
             int __resvalue = sum_ints(a, b);
 
             // Send over callsocket an ACK
-            // TODO: DO I NEED SPECIFIC CODES? RIGHT NOW IT'S UNUSED
+            // FIXME: right now the value is not used, it's just an ACK signal. This could be extended to something more, but for this version we won't do it.
             uint16_t rescode = 1;
             if (callstream->require_marshal()) {
                 rescode = forb::streams::marshal(rescode);
@@ -152,6 +150,7 @@ void example::rpc_class_skeleton::execute_call(forb::call_id_t code,
 
             datastream->send(&__resvalue, sizeof(__resvalue));
             break;
+        // FIXME: A default option would be nice, but this implies that somewhere some code produced by the library is wrong.
     }
 }
 

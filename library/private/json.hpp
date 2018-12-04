@@ -12070,7 +12070,7 @@ class json_pointer
             return result;
         }
 
-        // check if nonempty reference string begins with slash
+        // check if non_empty reference string begins with slash
         if (JSON_UNLIKELY(reference_string[0] != '/'))
         {
             JSON_THROW(detail::parse_error::create(107, 1,
@@ -16709,7 +16709,7 @@ class basic_json
 
             default:
             {
-                // all other types are nonempty
+                // all other types are non_empty
                 return false;
             }
         }

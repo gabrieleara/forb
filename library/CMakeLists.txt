@@ -28,7 +28,7 @@ add_library(forb SHARED
         stream/shared_memory.cpp
         base_skeleton.cpp
         base_stub.cpp
-        remote_registry.cpp stream/socket.cpp include/forb/exception.hpp)
+        remote_registry.cpp stream/socket.cpp include/forb/exception.hpp include/forb/make_unique.hpp)
 
 # Setting the version of the shared library
 set_target_properties(forb PROPERTIES

@@ -68,6 +68,7 @@ namespace forb {
         /// task waiting for a receiving task to free some space consuming data.
         class stream {
         public:
+            /// An unsigned size type.
             using size_t = std::size_t;
 
             /// The type of the stream.

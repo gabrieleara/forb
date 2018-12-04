@@ -2,7 +2,7 @@
 // Created by gabriele on 02/11/18.
 //
 
-#include "rpc_class_generated.hpp"
+#include "example.hpp"
 
 #include <cstring>
 
@@ -13,15 +13,10 @@ public:
     using rpc_class_skeleton::rpc_class_skeleton;
 
     // Methods as listed in the specification file
-    int sum(int a, int b, example::structure &c) override;
+    int sum(int a, int b) override;
 };
 
-int rpc_class_impl::sum(int a, int b, example::structure &c) {
-    std::string result = "Hello World!";
-    strncpy(c.a3, result.c_str(), result.length() + 1);
-    c.a1 = a * 2;
-    c.a2 = b * 3;
-
+int rpc_class_impl::sum(int a, int b) {
     return a + b;
 }
 
@@ -31,6 +26,6 @@ int main() {
 
     server.start_server();
 
-    while (true) {}
+    server.join_server();
 }
 

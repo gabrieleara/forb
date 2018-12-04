@@ -21,8 +21,13 @@ namespace forb {
         class shared_memory : public stream {
             /* *********************************** ALIASES AND STATIC ATTRIBUTES ************************************ */
         public:
+            /// The type of the indexes used within the shared memory area
             using index_t = stream::size_t;
+
+            /// The type of the key associated with the shared memory area
             using key_t = ::key_t; // Defined in sys/types.h
+
+            /// The type of the ID of the shared memory area
             using id_t = int;
 
         private:

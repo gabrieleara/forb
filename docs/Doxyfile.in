@@ -1,4 +1,6 @@
-OUTPUT_DIRECTORY    = @CMAKE_CURRENT_BINARY_DIR@/doc_doxygen/
-INPUT               = @CMAKE_CURRENT_SOURCE_DIR@/
-RECURSIVE           = YES
-EXCLUDE             = @CMAKE_CURRENT_SOURCE_DIR@/library/private/json.hpp
+OUTPUT_DIRECTORY        = @CMAKE_CURRENT_BINARY_DIR@/doc_doxygen/
+INPUT                   = @CMAKE_CURRENT_SOURCE_DIR@/compiler @CMAKE_CURRENT_SOURCE_DIR@/library
+RECURSIVE               = YES
+EXCLUDE                 = @CMAKE_CURRENT_SOURCE_DIR@/library/private/json.hpp
+ENABLE_PREPROCESSING    = YES
+PREDEFINED              = DOXYGEN_SHOULD_SKIP_THIS

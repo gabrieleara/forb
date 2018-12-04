@@ -142,6 +142,14 @@ void forb::streams::socket::listen(int listen_queue_size) {
     assert(_sock_fd > 0);
     assert(_local_port > 0);
 
+    if (listen_queue_size <= 0) {
+        throw forb::exception{
+                "Cannot set the queue size of a server socket to the strictly positive integer "
+                + std::to_string(listen_queue_size)
+                + "."
+        };
+    }
+
     int res = ::listen(_sock_fd, listen_queue_size);
 
     if (res != 0) {

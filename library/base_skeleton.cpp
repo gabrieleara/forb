@@ -4,110 +4,106 @@
 
 #include <forb/stream/shared_memory.hpp>
 #include <forb/base_skeleton.hpp>
+#include <forb/exception.hpp>
 
 using stream = forb::streams::stream;
 using ssocket = forb::streams::socket;
 using shared_memory = forb::streams::shared_memory;
 
+/// The mask that will be used to separate the call ID from the bit used to determine
+/// whether the data exchange will be performed over a socket or a shared memory area.
+static forb::call_id_t shmem_mask = forb::call_id_t_cast(stream::type::SHMEM);
+
+// For documentation of following methods, see corresponding header file
+
 void forb::base_skeleton::listen_thread_body(forb::base_skeleton *impl) {
-    bool should_continue = true;
-    {
-        std::lock_guard<std::mutex> lock{impl->calls_mutex};
-        should_continue = impl->can_accept;
-    }
+    forb::streams::socket call_socket;
+    std::thread           conn_thread;
 
     try {
-        while (should_continue) {
-            forb::streams::socket callsocket = impl->accept_call();
-
-            std::lock_guard<std::mutex> lock{impl->calls_mutex};
-            if (impl->can_accept) {
-                std::thread t{forb::base_skeleton::call_thread_body, impl, std::move(callsocket)};
-                impl->running_calls.push_back(std::move(t));
-            } else {
-                should_continue = false;
-            }
+        while (true) {
+            impl->accept_connection();
         }
-    } catch (int e) {
+    } catch (forb::exception &ex) {
+        // TODO: what to do here?
     }
 }
 
-forb::call_id_t shmem_mask = forb::call_id_t_cast(stream::type::SHMEM);
 
-void forb::base_skeleton::call_thread_body(forb::base_skeleton *impl, ssocket callsocket) {
+void forb::base_skeleton::call_thread_body(forb::base_skeleton *impl, ssocket call_socket) {
 
     try {
-        while (true) {// TODO: change
+        while (true) {
+            // First we receive the id of the call (ORed with a bit that
+            // determines whether data exchange will use shared memory area or not).
             forb::call_id_t code;
-            callsocket.recv(&code, sizeof(code));
+            call_socket.recv(&code, sizeof(code));
 
-            if (callsocket.require_marshal()) {
+            if (call_socket.require_marshal()) {
                 code = forb::streams::unmarshal(code);
             }
 
-            // This will tell whether shared memory shall be used, then we need to filter
-            // out the type of the call
+            // Separating the information bit from the actual call ID.
             bool use_shmem = (code & shmem_mask) != 0;
             code &= ~shmem_mask;
 
+            // The shared memory that will be used if necessary
             shared_memory shmem_ref;
 
+            // The pointer to the stream that will be actually used (either call_socket or shmem_ref).
             stream *datastream = nullptr;
 
             if (use_shmem) {
+                // The key of the shared memory is given through the call_socket
                 shared_memory::key_t key;
-                callsocket.recv(&key, sizeof(key));
+                call_socket.recv(&key, sizeof(key));
 
-                if (callsocket.require_marshal()) {
+                if (call_socket.require_marshal()) {
                     key = forb::streams::unmarshal(key);
                 }
 
-                shmem_ref  = shared_memory::get(key);
+                shmem_ref = shared_memory::get(key);
+
+                // The datastream will be the shared memory
                 datastream = &shmem_ref;
             } else {
-                datastream = &callsocket;
+                // The datastream will be the socket
+                datastream = &call_socket;
             }
 
-            impl->execute_call(code, &callsocket, datastream);
+            impl->execute_call(code, &call_socket, datastream);
         }
-    } catch (int e) {
+    } catch (forb::exception &ex) {
+        // TODO: what to do here?
     }
 
     // Destructors will do the cleanup
-
-    // TODO: Should also remove the thread from the vector
 }
 
-forb::streams::socket forb::base_skeleton::accept_call() {
-    return incoming_calls.accept();
+void forb::base_skeleton::accept_connection() {
+    ssocket     call_socket = _incoming_calls.accept();
+    std::thread conn_thread = std::thread{forb::base_skeleton::call_thread_body,
+                                          this,
+                                          std::move(call_socket)
+    };
+
+    // The thread will keep running independently from the thread object handle
+    conn_thread.detach();
 }
 
 void forb::base_skeleton::start_server() {
-    // TODO: should check whether the server is already running
+    if (_server_thread.joinable()) {
+        throw forb::exception{"Server already started. To start a new instance, please call join_server first."};
+    }
 
-    can_accept     = true;
-    incoming_calls = forb::streams::socket::make_server(port, queuesize);
-    listen_thread  = std::thread{&forb::base_skeleton::listen_thread_body, this};
+    _incoming_calls = forb::streams::socket::make_server(_port, _queue_size);
+    _server_thread  = std::thread{&forb::base_skeleton::listen_thread_body, this};
 }
 
-// TODO: actually call threads never terminate, thus another mechanism is needed to terminate the program
-void forb::base_skeleton::stop_server() {
-    {
-        std::lock_guard<std::mutex> lock{calls_mutex};
-        can_accept = false;
+void forb::base_skeleton::join_server() {
+    if (_server_thread.joinable()) {
+        _server_thread.join();
     }
 
-    for (auto &it : running_calls) {
-        it.join();
-    }
-
-    // Remove all threads from the vector
-    running_calls.clear();
-
-    {
-        std::lock_guard<std::mutex> lock{calls_mutex};
-        // Destroy forcefully the listening thread and close the listening socket
-        listen_thread  = std::thread{};
-        incoming_calls = forb::streams::socket{};
-    }
+    _incoming_calls.close();
 }

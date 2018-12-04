@@ -17,4 +17,6 @@
 
 #include <forb/remote_registry.hpp>
 
+#include <forb/make_unique.hpp>
+
 #endif //LIBFORB_FORB_HPP

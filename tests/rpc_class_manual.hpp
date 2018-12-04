@@ -17,10 +17,9 @@ namespace example {
     using rpc_class_var = std::unique_ptr<rpc_class>;
 
     class rpc_class : public virtual forb::base_stub {
-
-    private:
-        // Default constructor, no other constructor needed
-        rpc_class() = default;
+    public:
+        // Importing constructor from superclass
+        using forb::base_stub::base_stub;
 
     public:
         // Methods as listed in the specification file
@@ -30,7 +29,7 @@ namespace example {
         // Virtual methods needed for the factory
         bool _match(const std::string &type) const override;
 
-        forb::base_stub *_create_empty() const override;
+        forb::remote_var _create_empty() const override;
 
     public:
         // Method needed to downcast pointers to this class

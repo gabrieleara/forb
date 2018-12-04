@@ -1,0 +1,5 @@
+module example {
+    interface rpc_class {
+        int sum(in int a, in int b);
+    };
+}

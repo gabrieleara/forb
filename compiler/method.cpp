@@ -7,8 +7,6 @@
 
 // For documentation, see corresponding header file
 
-const std::string forbcc::res_code_type = "uint16_t";
-
 inline void forbcc::method::print_prototype(forbcc::code_ostream &out, const std::string &thename) const {
     out << _return_type->codename() << " " << thename << "(";
 
@@ -200,7 +198,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     std::string res_code_name = get_unused_variable_name("res_code");
 
-    out << res_code_type << " " << res_code_name << " = 1;" << std::endl;
+    out << "forb::res_code_t " << " " << res_code_name << " = 1;" << std::endl;
     out << "if (callstream->require_marshal()) {" << std::endl;
 
     out.increment_indentation();

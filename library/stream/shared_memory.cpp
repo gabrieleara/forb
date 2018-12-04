@@ -33,26 +33,43 @@ using condattr_t = pthread_condattr_t;
 /// NOTICE: the dimension of this data structure is variable, in that the last argument will
 /// be "stretched" when allocating the shared memory area to fit the given size.
 struct forb::streams::shared_memory::shmem_data {
-    mutex_t     mutex;
-    condition_t nonempty;
-    condition_t nonfull;
+    /// Mutex that avoids concurrent access to the shared memory.
+    mutex_t mutex;
 
-    index_t rear;  // Consuming pointer
-    index_t front; // Producing pointer
+    /// Condition that signals whenever the shared memory is not empty.
+    condition_t non_empty;
 
-    size_t data_size; // The dimension of the data buffer
+    /// Condition that signals whenever the shared memory is not full.
+    condition_t non_full;
 
+    /// Consuming pointer
+    index_t rear;
+
+    /// Producing pointer
+    index_t front;
+
+    /// The dimension of the data buffer, since the structure will stretch
+    /// automatically that attribute to fit the requested buffer size.
+    size_t data_size;
+
+    /// Counts the number of free spaces within the shared memory.
     size_t how_many_free;
+
+    /// Counts the number of data spaces occupied within the shared memory.
+    /// NOTICE: some spaces may be temporarily not free nor marked as data,
+    /// while they are filled by the producer or emptied by the consumer.
     size_t how_many_data;
 
-    // Data buffer, to be expanded when shared memory is allocated
-    // std::byte data[1]; // from C++17
+    /// Data buffer, to be expanded when shared memory is allocated
     unsigned char data[1]; // from C++98
+    // std::byte data[1]; // from C++17
 };
 
 /// This structure is used to initialize mutex and condition variables attributes at program startup.
 struct static_attributes {
+    /// Attributes used to construct mutexes
     mutexattr_t mutex_attrs{};
+    /// Attributes used to construct condition variables
     condattr_t  cond_attrs{};
 
     /// This constructor will be executed during the initialization of the variable static_attrs.
@@ -157,7 +174,7 @@ void forb::streams::shared_memory::_init(size_t size) {
                               + "."};
     }
 
-    res = pthread_cond_init(&_pointer->nonempty, &static_attrs.cond_attrs);
+    res = pthread_cond_init(&_pointer->non_empty, &static_attrs.cond_attrs);
     if (res != 0) {
         throw forb::exception{
                 "Unable to initialize condition variable within shared memory: "
@@ -165,7 +182,7 @@ void forb::streams::shared_memory::_init(size_t size) {
                 + "."};
     }
 
-    res = pthread_cond_init(&_pointer->nonfull, &static_attrs.cond_attrs);
+    res = pthread_cond_init(&_pointer->non_full, &static_attrs.cond_attrs);
     if (res != 0) {
         throw forb::exception{
                 "Unable to initialize condition variable within shared memory: "
@@ -191,7 +208,7 @@ void forb::streams::shared_memory::send(const void *buffer, size_t size) {
     while (remaining > 0) {
         // Until the shared memory is full, I need to wait
         while (_pointer->how_many_free == 0) {
-            pthread_cond_wait(&_pointer->nonfull, &_pointer->mutex);
+            pthread_cond_wait(&_pointer->non_full, &_pointer->mutex);
         }
 
         // Now I know for sure there is some space
@@ -224,7 +241,7 @@ void forb::streams::shared_memory::send(const void *buffer, size_t size) {
         // Since there is new data I need to increase count and signal the consumer
         pthread_mutex_lock(&_pointer->mutex);
         _pointer->how_many_data += how_many_sending_now;
-        pthread_cond_signal(&_pointer->nonempty);
+        pthread_cond_signal(&_pointer->non_empty);
     }
 
     pthread_mutex_unlock(&_pointer->mutex);
@@ -247,7 +264,7 @@ void forb::streams::shared_memory::recv(void *buffer, size_t size) {
     while (remaining > 0) {
         // Until the shared memory is empty, I need to wait
         while (_pointer->how_many_data == 0) {
-            pthread_cond_wait(&_pointer->nonempty, &_pointer->mutex);
+            pthread_cond_wait(&_pointer->non_empty, &_pointer->mutex);
         }
 
         // Now I know for sure there is some data
@@ -280,7 +297,7 @@ void forb::streams::shared_memory::recv(void *buffer, size_t size) {
         // Since there is new space available I need to increase count and signal the producer
         pthread_mutex_lock(&_pointer->mutex);
         _pointer->how_many_free += how_many_receiving_now;
-        pthread_cond_signal(&_pointer->nonfull);
+        pthread_cond_signal(&_pointer->non_full);
     }
 
     pthread_mutex_unlock(&_pointer->mutex);

@@ -20,13 +20,13 @@ inline void forbcc::interface::print_stub_declaration(forbcc::code_ostream &out)
         << "using " << name_var() << " = std::unique_ptr<" << name() << ">;" << std::endl
         << std::endl
         << "class " << name() << " : public virtual forb::base_stub {" << std::endl
-        << "private:" << std::endl;
+        << "public:" << std::endl;
 
     out.increment_indentation();
 
     // Print constructor
-    out << "// Default constructor, no other constructor needed" << std::endl
-        << name() << "() = default;" << std::endl
+    out << "// Importing constructor from superclass" << std::endl
+        << "using forb::base_stub::base_stub;" << std::endl
         << std::endl;
 
     out.decrement_indentation();
@@ -50,7 +50,7 @@ inline void forbcc::interface::print_stub_declaration(forbcc::code_ostream &out)
     out << "// Virtual methods needed for the factory" << std::endl
         << "bool _match(const std::string &type) const override;" << std::endl
         << std::endl
-        << "forb::base_stub *_create_empty() const override;" << std::endl
+        << "forb::remote_var _create_empty() const override;" << std::endl
         << std::endl;
 
     out.decrement_indentation();
@@ -166,10 +166,10 @@ inline void forbcc::interface::print_factory_match(forbcc::code_ostream &out) co
 
 inline void forbcc::interface::print_factory_create(forbcc::code_ostream &out) const {
     out << "/// Create method, used by the factory." << std::endl
-        << "forb::base_stub *" << codename() << "::_create_empty() const {" << std::endl;
+        << "forb::remote_var " << codename() << "::_create_empty() const {" << std::endl;
 
     out.increment_indentation();
-    out << "return new " << codename() << "{};" << std::endl;
+    out << "return std::make_unique<" << codename() << ">();" << std::endl;
     out.decrement_indentation();
 
     out << "}" << std::endl;
