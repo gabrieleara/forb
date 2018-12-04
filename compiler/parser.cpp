@@ -668,7 +668,7 @@ static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent
 
 const std::string forbcc::keywords[]           = {"MODULE", "TYPE", "INTERFACE"};
 const std::string forbcc::direction_keywords[] = {"IN", "OUT", "INOUT"};
-const std::string forbcc::reserved_names[]     = {"datastream", "callstream"};
+const std::string forbcc::reserved_names[]     = {"datastream", "callstream", "code"};
 const int forbcc::reserved_names_length = 2;
 
 /* **************************************************** METHODS ***************************************************** */

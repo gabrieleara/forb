@@ -8,7 +8,7 @@
 // #include <memory>
 
 #include <forb/forb.hpp>
-#include "rpc_class_manual.hpp"
+#include "example_manual_class.hpp"
 
 using ssocket = forb::streams::socket;
 using shared_memory = forb::streams::shared_memory;
@@ -150,7 +150,7 @@ void example::rpc_class_skeleton::execute_call(forb::call_id_t code,
 
             datastream->send(&__resvalue, sizeof(__resvalue));
             break;
-        // FIXME: A default option would be nice, but this implies that somewhere some code produced by the library is wrong.
+        // FIXME: A default option would be nice, but it would be triggered only in the case some code produced by the FORB IDL compiler may be wrong.
     }
 }
 

@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "rpc_class_manual.hpp"
+#include "example_manual_class.hpp"
 
 using namespace std;
 

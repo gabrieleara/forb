@@ -142,7 +142,6 @@ namespace forb {
         virtual bool _match(const std::string &type) const = 0;
 
         /// Creates a new empty stub object of the current type.
-        // TODO: move to unique_ptr for better exception safety?
         virtual remote_var _create_empty() const = 0;
 
         /// Returns a reference to the vector of prototypes of all known stub implementations.
@@ -151,7 +150,6 @@ namespace forb {
     private:
         /// Creates a new empty stub object of the given type.
         /// It shall be used only by forb::remote_registry class.
-        // TODO: move to unique_ptr for better exception safety?
         static remote_var _create(const std::string &type);
     };
 

@@ -6,6 +6,7 @@
 
 #include <json.hpp>
 #include <forb/remote_registry.hpp>
+#include <forb/exception.hpp>
 
 using json = nlohmann::json;
 
@@ -45,25 +46,31 @@ forb::remote_registry::remote_registry(remote_registry &&other) noexcept = defau
 forb::remote_registry &forb::remote_registry::operator=(forb::remote_registry &&other) noexcept = default;
 
 forb::remote_registry::remote_registry(std::string conf_file_name) {
-    // TODO: wrap exception handling
+    try {
+        std::ifstream conf_file{conf_file_name};
+        json          conf = json::parse(conf_file);
 
-    std::ifstream conf_file{conf_file_name};
-    json          conf = json::parse(conf_file);
+        json::array_t objects = conf["objects"];
 
-    json::array_t objects = conf["objects"];
+        remote_obj_entry entry;
+        std::string      name;
 
-    remote_obj_entry entry;
-    std::string      name;
+        for (auto &obj : objects) {
+            name = obj["name"];
+            entry._namespace = obj["namespace"];
+            entry._class     = obj["class"];
+            entry._ip        = obj["ip"];
+            entry._port      = obj["port"];
 
-    for (auto &obj : objects) {
-        name = obj["name"];
-        entry._namespace = obj["namespace"];
-        entry._class     = obj["class"];
-        entry._ip        = obj["ip"];
-        entry._port      = obj["port"];
-
-        remote_objects.insert(make_pair(name, entry));
+            remote_objects.insert(make_pair(name, entry));
+        }
+    } catch (std::exception &ex) {
+        throw forb::exception{
+            "Could not initialize remote registry because an exception arised: "
+            + std::string(ex.what())
+        };
     }
+
 }
 
 forb::remote_var forb::remote_registry::get(

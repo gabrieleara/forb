@@ -16,6 +16,8 @@
 
 #include <pthread.h>    // mutexes and condition variables
 
+#include <iostream>     // cerr logs
+
 #include <forb/stream/shared_memory.hpp>
 #include <forb/exception.hpp>
 
@@ -309,7 +311,7 @@ void forb::streams::shared_memory::close() noexcept {
         int res = ::shmdt(this->_pointer);
 
         if (res < 0) {
-            // TODO: log the error using strerror
+            std::cerr << "An error occurred while detaching shared memory: " << std::strerror(errno) << "."<< std::endl;
         }
 
         this->_pointer = nullptr;
@@ -320,7 +322,7 @@ void forb::streams::shared_memory::close() noexcept {
         int res = ::shmctl(this->_shmem_id, IPC_RMID, nullptr);
 
         if (res < 0) {
-            // TODO: log the error using strerror
+            std::cerr << "An error occurred while removing shared memory: " << std::strerror(errno) << "."<< std::endl;
         }
 
         this->_is_owner = false;

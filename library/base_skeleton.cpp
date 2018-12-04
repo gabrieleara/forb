@@ -25,7 +25,7 @@ void forb::base_skeleton::listen_thread_body(forb::base_skeleton *impl) {
             impl->accept_connection();
         }
     } catch (forb::exception &ex) {
-        // TODO: what to do here?
+        // FIXME: what to do here?
     }
 }
 
@@ -74,7 +74,7 @@ void forb::base_skeleton::call_thread_body(forb::base_skeleton *impl, ssocket ca
             impl->execute_call(code, &call_socket, datastream);
         }
     } catch (forb::exception &ex) {
-        // TODO: what to do here?
+        // FIXME: what to do here?
     }
 
     // Destructors will do the cleanup
