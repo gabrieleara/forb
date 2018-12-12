@@ -1,0 +1,26 @@
+module examples {
+    type structure {
+        int a;
+        int b;
+        char c[2];
+        short array[16];
+    };
+
+    interface rpc_class {
+        int test_odd(in int number);
+
+        void swap(inout int a, inout int b);
+
+        int divide(in int num, in int den, out int quotient);
+        int divide(in int num, in int den, out int quotient, out int remainder);
+
+        void sort(inout int array[100]);
+        void sort_bounded(inout int array[100], in int size);
+    };
+
+    module submodule {
+        interface sub_class {
+            int compute_fingerprint(in structure struct);
+        };
+    }
+}

@@ -60,17 +60,17 @@ namespace forb {
         };
 
         /// Returns a reference to the object identified by the obj_name argument, a NIL pointer otherwise.
-        /// The force_socket argument can be used to obtain an handle that forces the use of sockets for data
-        /// exchange even when the two hosts are on the same machine.
-        remote_var get(const std::string &obj_name, bool force_socket) const {
-            return get(obj_name, force_socket, 0);
-        };
-
-        /// Returns a reference to the object identified by the obj_name argument, a NIL pointer otherwise.
         /// The buffer_size argument can be used to force the size of the buffer that will be used in case
         /// a shared memory area will be allocated to exchange data between components.
         remote_var get(const std::string &obj_name, base_stub::buffer_size_t buffer_size) {
             return get(obj_name, false, buffer_size);
+        };
+
+        /// Returns a reference to the object identified by the obj_name argument, a NIL pointer otherwise.
+        /// This method is the same as get, but forces the new handle to use of sockets for data
+        /// exchange even when the two hosts are on the same machine.
+        remote_var get_force_socket(const std::string &obj_name) const {
+            return get(obj_name, true, 0);
         };
 
     private:

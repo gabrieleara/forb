@@ -67,26 +67,32 @@ struct forb::streams::shared_memory::shmem_data {
     // std::byte data[1]; // from C++17
 };
 
-/// This structure is used to initialize mutex and condition variables attributes at program startup.
-struct static_attributes {
-    /// Attributes used to construct mutexes
-    mutexattr_t mutex_attrs{};
-    /// Attributes used to construct condition variables
-    condattr_t  cond_attrs{};
+namespace forb {
+    namespace streams {
+        /// This structure is used to initialize mutex and condition variables attributes at program startup.
+        struct static_posix_attributes {
+            /// Attributes used to construct mutexes
+            mutexattr_t mutex_attrs{};
+            /// Attributes used to construct condition variables
+            condattr_t  cond_attrs{};
 
-    /// This constructor will be executed during the initialization of the variable static_attrs.
-    static_attributes() {
-        pthread_mutexattr_init(&mutex_attrs);
-        pthread_mutexattr_setpshared(&mutex_attrs, PTHREAD_PROCESS_SHARED);
+            /// This constructor will be executed during the initialization of the variable static_attrs.
+            static_posix_attributes() {
+                pthread_mutexattr_init(&mutex_attrs);
+                pthread_mutexattr_setpshared(&mutex_attrs, PTHREAD_PROCESS_SHARED);
 
-        pthread_condattr_init(&cond_attrs);
-        pthread_condattr_setpshared(&cond_attrs, PTHREAD_PROCESS_SHARED);
+                pthread_condattr_init(&cond_attrs);
+                pthread_condattr_setpshared(&cond_attrs, PTHREAD_PROCESS_SHARED);
+            }
+        };
+
+        /// This variable contains attributes for mutex and condition variables,
+        /// which are reused for each new allocation.
+        static const static_posix_attributes static_attrs;
     }
-};
+}
 
-/// This variable contains attributes for mutex and condition variables,
-/// which are reused for each new allocation.
-static const static_attributes static_attrs;
+
 
 /* *************************************** SHARED MEMORY CLASS IMPLEMENTATION *************************************** */
 
@@ -311,7 +317,8 @@ void forb::streams::shared_memory::close() noexcept {
         int res = ::shmdt(this->_pointer);
 
         if (res < 0) {
-            std::cerr << "An error occurred while detaching shared memory: " << std::strerror(errno) << "."<< std::endl;
+            std::cerr << "An error occurred while detaching shared memory: " << std::strerror(errno) << "."
+                      << std::endl;
         }
 
         this->_pointer = nullptr;
@@ -322,7 +329,7 @@ void forb::streams::shared_memory::close() noexcept {
         int res = ::shmctl(this->_shmem_id, IPC_RMID, nullptr);
 
         if (res < 0) {
-            std::cerr << "An error occurred while removing shared memory: " << std::strerror(errno) << "."<< std::endl;
+            std::cerr << "An error occurred while removing shared memory: " << std::strerror(errno) << "." << std::endl;
         }
 
         this->_is_owner = false;

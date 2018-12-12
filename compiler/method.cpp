@@ -62,11 +62,12 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
 
     // This is standard, each call must be initialized
     out << "this->init_call(forb::call_id_t_cast(" << enumname << "::" << id() << "));" << std::endl;
-    out << std::endl;
 
     // Then we start to serialize input parameters
     if (_counters[static_cast<int>(direction::IN)] > 0 ||
         _counters[static_cast<int>(direction::INOUT)] > 0) {
+
+        out << std::endl;
 
         out << "// Objects serialization" << std::endl;
         out << "if (datastream->require_marshal()) {" << std::endl;
@@ -96,14 +97,14 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
     }
 
     out << std::endl;
+
     out << "// Wait for the response" << std::endl;
     out << "this->wait_return();" << std::endl;
 
-    out << std::endl;
-
-    // After successful call invocation, we receive output parameters
+    // After successful call invocation, we receive output parameters (if any)
     if (_counters[static_cast<int>(direction::OUT)] > 0 ||
         _counters[static_cast<int>(direction::INOUT)] > 0) {
+        out << std::endl;
 
         out << "// Read output parameters" << std::endl;
         for (const auto &it: list()) {
@@ -111,6 +112,7 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
                 it.var().print_serialize(out, serialize::RECV);
             }
         }
+
         out << std::endl;
 
         out << "if (datastream->require_marshal()) {" << std::endl;
@@ -130,6 +132,8 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
 
     // Finally, if the return type is not void, we receive the returned value too
     if (_return_type->name() != "void") {
+        out << std::endl;
+
         out << "// Finally read returned value" << std::endl;
 
         variable res_variable{_return_type, get_unused_variable_name("res_value")};
@@ -239,31 +243,36 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
     out << std::endl;
 
-    out << "// Send back output variables" << std::endl;
+    // If there are parameters to send back as outout, marshal/serialize them
+    if (_counters[static_cast<int>(direction::OUT)] > 0 ||
+        _counters[static_cast<int>(direction::INOUT)] > 0) {
 
-    out << "if (datastream->require_marshal()) {" << std::endl;
-    out.increment_indentation();
+        out << "// Send back output variables" << std::endl;
 
-    // If required, marshal each output parameter
-    for (const auto &it : list()) {
-        if (it.dir() != direction::IN) {
-            it.var().print_marshal(out, marshal::MARSHAL);
+        out << "if (datastream->require_marshal()) {" << std::endl;
+        out.increment_indentation();
+
+        // If required, marshal each output parameter
+        for (const auto &it : list()) {
+            if (it.dir() != direction::IN) {
+                it.var().print_marshal(out, marshal::MARSHAL);
+            }
         }
-    }
 
-    out.decrement_indentation();
-    out << "}" << std::endl;
+        out.decrement_indentation();
+        out << "}" << std::endl;
 
-    out << std::endl;
+        out << std::endl;
 
-    // Serialize each output parameter
-    for (const auto &param : list()) {
-        if (param.dir() != direction::IN) {
-            param.var().print_serialize(out, serialize::SEND);
+        // Serialize each output parameter
+        for (const auto &param : list()) {
+            if (param.dir() != direction::IN) {
+                param.var().print_serialize(out, serialize::SEND);
+            }
         }
-    }
 
-    out << std::endl;
+        out << std::endl;
+    }
 
     // If the function has a return value, marshal/serialize it too
     if (_return_type->name() != "void") {
