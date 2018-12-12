@@ -4,21 +4,27 @@
 [![Documentation](https://codedocs.xyz/gabrieleara/forb.svg)](https://codedocs.xyz/gabrieleara/forb/)
 <!-- [![HitCount](http://hits.dwyl.io/gabrieleara/forb.svg)](http://hits.dwyl.io/gabrieleara/forb) -->
 
-
-A Fast Object Request Broker
+*A Fast Object Request Broker*
 
 This is a project for the Component-Based Software Design exam
 of the [Master Degree in Embedded Computing Systems](http://mecs.sssup.it)
 at [Scuola Superiore Sant'Anna, Pisa](https://www.santannapisa.it/en).
 
-The project consists in the implementation of an Object Request Broker (ORB) and Remote Procedure Call (RPC) mechanism
-that could gain performance improvements when ported in common scenarios, like multiple components of a distributed
-system deployed on the same physical host in a cloud facility, but executed within different containers or
-in general in a virtualized environment, without penalizing the performance of components deployed on different
-physical hosts communicating within each other.
+The project consists in the implementation of an Object Request Broker (ORB) and Remote Procedure Call (RPC) mechanism.
 
-While right now this mechanism works only on a single host/container, it can be further expanded in the future to adapt
-it to the scenario illustrated above.
+A distributed program using the FORB library to perform RPC calls could gain performance improvements in certain
+scenarios, without any penalization if said conditions are met.
+The optimal scenario is the one in which multiple communicating components are deployed on different containers
+(or virtualized environments) on the same host. This often happens in cloud environments and the common solution so far
+is to use sockets to exchange data, even if the two containers are on the same host.
+
+The approach of this library is to use a shared memory area instead if the optimal scenario is detected, which
+eliminates the need of bytes marshalling/unmarshalling when serialization/deserialization of exchanged data is
+performed. If said condition is not met, the library uses once again socket communication, so communication between
+various hosts is not affected by the library itself.
+
+While right now this acceleration mechanism works only if the two programs that need to communicate share an IPC
+namespace, it can be further expanded in the future to adapt it to the more general scenario illustrated above.
 
 ## Project Structure
 The project is build under CMake and thus it resembles common CMake projects file tree structure.
