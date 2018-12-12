@@ -1,6 +1,7 @@
 # Exclude build directories
 cmake-build-*
 build
+build*
 
 # Exclude IntelliJ CLion configuration directory
 .idea
