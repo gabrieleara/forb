@@ -7,7 +7,7 @@ project(forb)
 # Setting default compiling mode to Release
 # To compile in Debug mode use cmake -DCMAKE_BUILD_TYPE=Debug
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE RELEASE CACHE STRING "" FORCE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
     message(STATUS "The CMAKE_BUILD_TYPE variable has been set to the default value")
 endif ()
 
@@ -17,6 +17,7 @@ message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 add_subdirectory(compiler)
 add_subdirectory(library)
 add_subdirectory(tests)
+# add_subdirectory(profiler)
 
 ####################### DOXYGEN #######################
 
