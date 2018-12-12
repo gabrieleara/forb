@@ -1,6 +1,6 @@
 # FORB
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Documentation](https://codedocs.xyz/gabrieleara/forb.svg)](https://codedocs.xyz/gabrieleara/forb/)
 <!-- [![HitCount](http://hits.dwyl.io/gabrieleara/forb.svg)](http://hits.dwyl.io/gabrieleara/forb) -->
 
