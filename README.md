@@ -79,7 +79,7 @@ build other projects with CMake that use FORB-generated sources.
 **A more detailed explanation will be added soon.**
 
 Notice that is totally not necessary to install the library to build targets within [tests](tests) folder, because
-it will automatically files within `build` directory to compile FORB IDL files and link each target with
+it will automatically use files within `build` directory to compile FORB IDL files and link each target with
 the shared library, re-building needed files on-demand if necessary
 
 ## Documentation
