@@ -633,6 +633,8 @@ static inline void parse_module_body(std::istream &file, const forbcc::module::p
                                         "unexpected '}' in global module, expected EOF instead"};
             }
 
+            skip_symbol(file, ";");
+
             keep_going = false;
         } else {
             throw forbcc::exception{"parse of input file",
@@ -666,7 +668,7 @@ static void parse_module(std::istream &file, const forbcc::module::ptr_t &parent
 
 /* ******************************************* STATIC VARIABLES/CONSTANTS ******************************************* */
 
-const std::string forbcc::keywords[]           = {"MODULE", "TYPE", "INTERFACE"};
+const std::string forbcc::keywords[]           = {"MODULE", "STRUCT", "INTERFACE"};
 const std::string forbcc::direction_keywords[] = {"IN", "OUT", "INOUT"};
 const std::string forbcc::reserved_names[]     = {"datastream", "callstream", "code"};
 const int forbcc::reserved_names_length = 2;

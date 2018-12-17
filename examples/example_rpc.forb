@@ -22,5 +22,5 @@ module examples {
         interface sub_class {
             int compute_fingerprint(in structure struct);
         };
-    }
-}
+    };
+};
