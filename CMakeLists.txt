@@ -17,7 +17,7 @@ message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 add_subdirectory(compiler)
 add_subdirectory(library)
 add_subdirectory(tests)
-# add_subdirectory(profiler)
+add_subdirectory(profiler)
 
 ####################### DOXYGEN #######################
 

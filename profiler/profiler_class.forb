@@ -1,0 +1,20 @@
+module forb_profiler {
+    // Simple conversion table:
+
+    // 8    KB = 8192       B
+    // 1    KB = 1024       B
+    // 32   KB = 32768      B
+    // 128  KB = 131072     B
+    // 512  KB = 524288     B
+    // 1    MB = 1048576    B
+    // 4    MB = 4194304    B
+    // More than 8 MB on the stack are prohibited and very unlikely to be used
+
+    interface profiler {
+        /*
+         * The return type is not void to force the library to send back a result
+         * after all data has been received.
+         */
+        int method(in int arg[1048576]); // 1M words = 4MB
+    };
+};

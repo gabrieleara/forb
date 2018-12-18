@@ -1,0 +1,11 @@
+{
+  "objects": [
+    {
+      "name": "remote_profiler_single",
+      "module": "forb_profiler",
+      "class": "profiler",
+      "ip": "127.0.0.1",
+      "port": 13994
+    }
+  ]
+}
