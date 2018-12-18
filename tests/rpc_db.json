@@ -2,7 +2,7 @@
   "objects": [
     {
       "name": "rpc_obj",
-      "namespace": "example",
+      "module": "example",
       "class": "rpc_class",
       "ip": "127.0.0.1",
       "port": 13994

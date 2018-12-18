@@ -15,8 +15,8 @@ using json = nlohmann::json;
 /// The type that will store all information about a remote object
 /// that will be parsed from the JSON file.
 struct forb::remote_registry::remote_obj_entry {
-    /// The namespace in which the class is defined
-    std::string _namespace = "";
+    /// The module/namespace in which the class is defined
+    std::string _module = "";
 
     /// The class name
     std::string _class = "";
@@ -57,17 +57,17 @@ forb::remote_registry::remote_registry(std::string conf_file_name) {
 
         for (auto &obj : objects) {
             name = obj["name"];
-            entry._namespace = obj["namespace"];
-            entry._class     = obj["class"];
-            entry._ip        = obj["ip"];
-            entry._port      = obj["port"];
+            entry._module = obj["module"];
+            entry._class  = obj["class"];
+            entry._ip     = obj["ip"];
+            entry._port   = obj["port"];
 
             remote_objects.insert(make_pair(name, entry));
         }
     } catch (std::exception &ex) {
         throw forb::exception{
-            "Could not initialize remote registry because an exception arised: "
-            + std::string(ex.what())
+                "Could not initialize remote registry because an exception arised: "
+                + std::string(ex.what())
         };
     }
 
@@ -86,8 +86,8 @@ forb::remote_var forb::remote_registry::get(
     }
 
     std::string classname = entry._class;
-    if (entry._namespace.length() > 0) {
-        classname = entry._namespace + "::" + classname;
+    if (entry._module.length() > 0) {
+        classname = entry._module + "::" + classname;
     }
 
     remote_var var = base_stub::_create(classname);
