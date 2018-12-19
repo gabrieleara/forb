@@ -54,11 +54,21 @@ namespace forbcc {
         /// Prints the variable declaration, proxy to forbcc::type::print_var_declaration, which is a virtual function,
         /// so the actual type of the variable will handle its print.
         void print_declaration(code_ostream &out) const override {
-            _var_type->print_var_declaration(out, name());
+            print_declaration(out, true);
         };
 
         /// Does nothing, variables do not require definition.
         void print_definition(code_ostream &) const override {};
+
+        /// Prints the declaration of a variable that might be allocated on the stack or on the heap
+        void print_declaration(code_ostream &out, bool force_stack) const {
+            _var_type->print_var_definition(out, name(), force_stack);
+        };
+
+        /// Prints the lvalue of the given variable
+        void print_lvalue(code_ostream &out, bool force_stack = true) const {
+            _var_type->print_var_lvalue(out, name(), force_stack);
+        }
 
         /// Prints the variable declaration, proxy to forbcc::type::print_var_reference, which is a virtual function,
         /// so the actual type of the variable will handle its print.
@@ -68,14 +78,14 @@ namespace forbcc {
 
         /// Prints the variable declaration, proxy to forbcc::type::print_var_marshal, which is a virtual function,
         /// so the actual type of the variable will handle its print.
-        void print_marshal(code_ostream &out, const marshal &do_undo) const {
-            _var_type->print_var_marshal(out, name(), do_undo);
+        void print_marshal(code_ostream &out, const marshal &do_undo, bool force_stack = true) const {
+            _var_type->print_var_marshal(out, name(), do_undo, force_stack);
         };
 
         /// Prints the variable declaration, proxy to forbcc::type::print_var_serialize, which is a virtual function,
         /// so the actual type of the variable will handle its print.
-        void print_serialize(code_ostream &out, const serialize &do_undo) const {
-            _var_type->print_var_serialize(out, name(), do_undo);
+        void print_serialize(code_ostream &out, const serialize &do_undo, bool force_stack = true) const {
+            _var_type->print_var_serialize(out, name(), do_undo, force_stack);
         };
 
     };

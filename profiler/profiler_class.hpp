@@ -4,6 +4,11 @@
 #include <forb/forb.hpp>
 
 namespace forb_profiler {
+    struct roba {
+        int8_t a[131072];
+    };
+    
+    
     class profiler;
     
     using profiler_ptr = std::shared_ptr<profiler>;
@@ -17,6 +22,7 @@ namespace forb_profiler {
     public:
         // Methods as listed in the specification file
         int32_t method(int32_t arg[1048576]);
+        forb_profiler::roba method2(int32_t arg[1048576]);
         
     protected:
         // Virtual methods needed for the factory
@@ -55,6 +61,7 @@ namespace forb_profiler {
         
         // Methods as listed in the specification file
         virtual int32_t method(int32_t arg[1048576]) = 0;
+        virtual forb_profiler::roba method2(int32_t arg[1048576]) = 0;
         
     protected:
         void execute_call(forb::call_id_t code,
@@ -66,6 +73,7 @@ namespace forb_profiler {
     /// Enumerator used to distinguish the requested call.
     enum class profiler_method_codes : forb::call_id_t {
         _FmethodE30_Forb_Array_int32_t_D_1048576_,
+        _Fmethod2E30_Forb_Array_int32_t_D_1048576_,
     };
     
     

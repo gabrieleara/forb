@@ -17,6 +17,9 @@ namespace forbcc {
         /// platforms all integers exchanged between components will have fixed size.
         std::string actual_type;
 
+        /// The size of the actual_type
+        size_t _size = 0;
+
         /* ************************************************* STATIC ************************************************* */
     public:
         /// The type of the global list of all known type_primitive pointers.
@@ -44,8 +47,8 @@ namespace forbcc {
         type_primitive() : type() {};
 
         /// Each primitive types corresponds to an actual type with fixed size
-        type_primitive(const std::string &name, const std::string &actual_type)
-                : type(nullptr, name), actual_type(actual_type) {};
+        type_primitive(const std::string &name, const std::string &actual_type, const size_t size)
+                : type(nullptr, name), actual_type(actual_type), _size(size) {};
 
         /**************************************************************************************************************/
 
@@ -76,6 +79,18 @@ namespace forbcc {
         std::string codename() const final {
             return actual_type;
         };
+
+        /// The size of the given type
+        size_t size_of() const override {
+            return _size;
+        };
+
+        /// Returns the alignment of the given type
+        size_t alignment() const override {
+            return _size;
+        };
+
+
     };
 
 } // namespace forbcc

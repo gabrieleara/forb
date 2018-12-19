@@ -166,7 +166,7 @@ void forbcc::method::print_stub_definition(code_ostream &out, const std::string 
 void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const {
     // First of all, declare variables to contain all parameters, both input and output ones
     for (const auto &it : list()) {
-        it.var().print_declaration(out);
+        it.var().print_declaration(out, false);
         out << ";" << std::endl;
     };
 
@@ -175,7 +175,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     // Then receive each IN/INOUT parameter
     for (const auto &it: list()) {
         if (it.dir() != direction::OUT) {
-            it.var().print_serialize(out, serialize::RECV);
+            it.var().print_serialize(out, serialize::RECV, false);
         }
     }
 
@@ -188,7 +188,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     // If marshalling was required, unmarshal each IN/INOUT parameter
     for (const auto &it: list()) {
         if (it.dir() != direction::OUT) {
-            it.var().print_marshal(out, marshal::UNMARSHAL);
+            it.var().print_marshal(out, marshal::UNMARSHAL, false);
         }
     }
 
@@ -221,7 +221,11 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
     if (_return_type->name() != "void") {
         variable res_variable{_return_type, get_unused_variable_name("res_value")};
 
-        res_variable.print_declaration(out);
+        res_variable.print_declaration(out, false);
+
+        out << ";" << std::endl;
+
+        res_variable.print_lvalue(out, false);
         out << " = ";
     }
 
@@ -236,7 +240,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
             out << ", ";
         }
 
-        out << it.name();
+        it.var().print_lvalue(out, false);
     }
 
     out << ");" << std::endl;
@@ -255,7 +259,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
         // If required, marshal each output parameter
         for (const auto &it : list()) {
             if (it.dir() != direction::IN) {
-                it.var().print_marshal(out, marshal::MARSHAL);
+                it.var().print_marshal(out, marshal::MARSHAL, false);
             }
         }
 
@@ -267,7 +271,7 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
         // Serialize each output parameter
         for (const auto &param : list()) {
             if (param.dir() != direction::IN) {
-                param.var().print_serialize(out, serialize::SEND);
+                param.var().print_serialize(out, serialize::SEND, false);
             }
         }
 
@@ -281,12 +285,12 @@ void forbcc::method::print_skeleton_definition(forbcc::code_ostream &out) const 
 
         variable res_variable{_return_type, get_unused_variable_name("res_value")};
 
-        res_variable.print_marshal(out, marshal::MARSHAL);
+        res_variable.print_marshal(out, marshal::MARSHAL, false);
 
         out.decrement_indentation();
         out << "}" << std::endl;
 
-        res_variable.print_serialize(out, serialize::SEND);
+        res_variable.print_serialize(out, serialize::SEND, false);
     }
 }
 

@@ -24,7 +24,10 @@ namespace forbcc {
         std::shared_ptr<const type> _item_type;
 
         /// The length of the array
-        length_t _length;
+        length_t _length = 0;
+
+        /// The result of a sizeof on the array
+        size_t _size = 0;
 
         /* ************************************************* STATIC ************************************************* */
     public:
@@ -47,7 +50,7 @@ namespace forbcc {
         /* ********************************************** CONSTRUCTORS ********************************************** */
     public:
         /// Empty array type, used to preallocate variables in arrays or to use later assignment operator
-        type_array() : type(), _item_type(nullptr), _length(0) {};
+        type_array() : type(), _item_type(nullptr) {};
 
         /// Any trivially copyable type can be accepted as an array item type (except another array_type), while
         /// the length of the array must be a strictly positive integer.
@@ -55,7 +58,8 @@ namespace forbcc {
         type_array(const std::shared_ptr<const type> &item_type, const length_t length)
                 : type(nullptr, to_identifier(item_type, length)),
                   _item_type(item_type),
-                  _length(length) {
+                  _length(length),
+                  _size(item_type->size_of() * length) {
             assert((length > 0 && "The length of the array must be strictly positive!"));
         };
 
@@ -98,18 +102,34 @@ namespace forbcc {
         };
 
         /// Prints the declaration of a variable of the given type (no semicolon).
-        void print_var_declaration(code_ostream &output, const std::string &var_name) const override;
+        void print_var_declaration(code_ostream &out, const std::string &var_name) const override;
+
+        /// Print the definition of a variable of this type
+        void print_var_definition(code_ostream &out, const std::string &var_name, bool force_stack) const override;
+
+        /// Print the acquisition of the value of a variable of this type
+        void print_var_lvalue(code_ostream &out, const std::string &var_name, bool is_stack) const override;
 
         /// Prints the declaration of a reference variable of the given type (no semicolon).
-        void print_var_reference(code_ostream &output, const std::string &var_name) const override;
+        void print_var_reference(code_ostream &out, const std::string &var_name) const override;
 
         /// Prints the marshalling/unmarshalling operation of a variable of the given type.
-        void print_var_marshal(code_ostream &out, const std::string &var_name, const marshal &do_undo)
-        const override;
+        void print_var_marshal(code_ostream &out, const std::string &var_name, const marshal &do_undo,
+                               bool force_stack) const override;
 
         /// Prints the serialization/deserialization of a variable of the given type.
-        void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize &do_undo)
-        const override;
+        void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize &do_undo,
+                                 bool force_stack) const override;
+
+        /// Returns the size of the given type
+        size_t size_of() const override {
+            return _size;
+        };
+
+        /// Returns the alignment of the given type
+        size_t alignment() const override {
+            return item_type()->alignment();
+        };
     };
 
 } // namespace forbcc

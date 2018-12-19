@@ -10,11 +10,17 @@ module forb_profiler {
     // 4    MB = 4194304    B
     // More than 8 MB on the stack are prohibited and very unlikely to be used
 
+    struct roba {
+        char a[131072];
+    };
+
     interface profiler {
         /*
          * The return type is not void to force the library to send back a result
          * after all data has been received.
          */
         int method(in int arg[1048576]); // 1M words = 4MB
+
+        roba method2(in int arg[1048576]); // 1M words = 4MB
     };
 };

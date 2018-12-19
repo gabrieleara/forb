@@ -119,7 +119,7 @@ void test_variable(profiler_var &var,
     for (unsigned long size = min_size; size <= max_size; size *= multiplier) {
         std::cout << size / 1024 / 1024 << "MB\t";
         std::cout.flush();
-        
+
         first_ever = true;
 
         test_size(var, size, samples);

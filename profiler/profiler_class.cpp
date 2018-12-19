@@ -4,6 +4,16 @@ using ssocket = forb::streams::socket;
 using shared_memory = forb::streams::shared_memory;
 using stream = forb::streams::stream;
 
+namespace forb {
+    namespace streams {
+        template <>
+        forb_profiler::roba marshal<forb_profiler::roba>(forb_profiler::roba v) {
+            forb::streams::marshal(v.a, 131072);
+            return v;
+        }
+    } // namespace streams
+} // namespace forb
+
 /// Initializing static attributes for forb_profiler::profiler class factory.
 forb_profiler::profiler             forb_profiler::profiler::_factory{};
 forb_profiler::profiler::init_class forb_profiler::profiler::_init{};
@@ -73,13 +83,43 @@ int32_t forb_profiler::profiler::method(int32_t arg[1048576]) {
     }
     
     // Now write stuff to the stream
-    datastream->send(arg, sizeof(int) * 1048576);
+    datastream->send(arg, sizeof(int32_t) * 1048576);
     
     // Wait for the response
     this->wait_return();
     
     // Finally read returned value
     int32_t res_value;
+    
+    datastream->recv(&res_value, sizeof(res_value));
+    
+    if (datastream->require_marshal()) {
+        res_value = forb::streams::unmarshal(res_value);
+    }
+    
+    return res_value;
+}
+
+forb_profiler::roba forb_profiler::profiler::method2(int32_t arg[1048576]) {
+    // Calls cannot be executed concurrently, since the connection is recycled for each call.
+    std::lock_guard<std::mutex> lock{base_stub::_mutex};
+    
+    this->init_call(forb::call_id_t_cast(profiler_method_codes::_Fmethod2E30_Forb_Array_int32_t_D_1048576_));
+    
+    // Objects serialization
+    if (datastream->require_marshal()) {
+        // Data requires marshalling before being sent
+        forb::streams::marshal(arg, 1048576);
+    }
+    
+    // Now write stuff to the stream
+    datastream->send(arg, sizeof(int32_t) * 1048576);
+    
+    // Wait for the response
+    this->wait_return();
+    
+    // Finally read returned value
+    forb_profiler::roba res_value;
     
     datastream->recv(&res_value, sizeof(res_value));
     
@@ -100,12 +140,12 @@ void forb_profiler::profiler_skeleton::execute_call(forb::call_id_t code,
     // They might be the same stream
     switch ((profiler_method_codes) code) {
         case profiler_method_codes::_FmethodE30_Forb_Array_int32_t_D_1048576_: {
-            int32_t arg[1048576];
+            std::unique_ptr<int32_t[]> arg = std::make_unique<int32_t[]>(1048576);
             
-            datastream->recv(arg, sizeof(int) * 1048576);
+            datastream->recv(arg.get(), sizeof(int32_t) * 1048576);
             
             if (datastream->require_marshal()) {
-                forb::streams::unmarshal(arg, 1048576);
+                forb::streams::unmarshal(arg.get(), 1048576);
             }
             
             // Send over callstream an ACK
@@ -117,12 +157,41 @@ void forb_profiler::profiler_skeleton::execute_call(forb::call_id_t code,
             callstream->send(&res_code, sizeof(res_code));
             
             // Perform virtual call
-            int32_t res_value = method(arg);
+            int32_t res_value;
+            res_value = method(arg.get());
             
             if (datastream->require_marshal()) {
                 res_value = forb::streams::marshal(res_value);
             }
             datastream->send(&res_value, sizeof(res_value));
+        }
+            break;
+            
+        case profiler_method_codes::_Fmethod2E30_Forb_Array_int32_t_D_1048576_: {
+            std::unique_ptr<int32_t[]> arg = std::make_unique<int32_t[]>(1048576);
+            
+            datastream->recv(arg.get(), sizeof(int32_t) * 1048576);
+            
+            if (datastream->require_marshal()) {
+                forb::streams::unmarshal(arg.get(), 1048576);
+            }
+            
+            // Send over callstream an ACK
+            forb::res_code_t  res_code = 1;
+            if (callstream->require_marshal()) {
+                res_code = forb::streams::marshal(res_code);
+            }
+            
+            callstream->send(&res_code, sizeof(res_code));
+            
+            // Perform virtual call
+            std::unique_ptr<forb_profiler::roba> res_value = std::make_unique<forb_profiler::roba>();;
+            *res_value = method2(arg.get());
+            
+            if (datastream->require_marshal()) {
+                *res_value = forb::streams::marshal(*res_value);
+            }
+            datastream->send(&*res_value, sizeof(*res_value));
         }
             break;
             

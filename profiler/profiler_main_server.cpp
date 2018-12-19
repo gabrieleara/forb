@@ -57,6 +57,10 @@ public:
     int method(int32_t *) override {
         return 0;
     };
+
+    forb_profiler::roba method2(int32_t [1048576]) override {
+        return forb_profiler::roba{};
+    }
 };
 
 int main() {
