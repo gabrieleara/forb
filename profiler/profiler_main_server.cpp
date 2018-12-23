@@ -51,7 +51,7 @@ public:
 
 // NOTICE: last bit must be 1 (or a 1 followed by zeros until the end of the chunk)
 
-int32_t hash(int32_t *data, size_t length) {
+int32_t hash(const int32_t *data, size_t length) {
     int32_t res = data[0];
 
     for (size_t i = 1; i < length; ++i)
@@ -60,7 +60,6 @@ int32_t hash(int32_t *data, size_t length) {
     return res;
 }
 
-
 class profiler_impl : public profiler_skeleton {
 
 public:
@@ -68,8 +67,8 @@ public:
     using profiler_skeleton::profiler_skeleton;
 
     // The method itself does nothing of course
-    int method(int32_t *) override {
-        return 0;
+    int method(int32_t data[1048576]) override {
+        return hash(data, 1048576);
     };
 
     forb_profiler::roba method2(int32_t [1048576]) override {

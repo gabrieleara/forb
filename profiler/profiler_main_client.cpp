@@ -55,19 +55,40 @@ inline time_unit count_hours(duration d) {
     return duration_count<hours>(d);
 }
 
+int32_t hash(const int32_t *data, size_t length) {
+    int32_t res = data[0];
+
+    for (size_t i = 1; i < length; ++i)
+        res ^= data[i];
+
+    return res;
+}
+
 constexpr long arg_length = 4 * MB / sizeof(int32_t);
 
 int32_t arg[arg_length];
+int32_t arg_copy[arg_length];
+int32_t expected_value;
 
 duration transfer_data(profiler_var &var, long size) {
     time_point start_time, end_time;
     duration   time_elapsed;
 
+    int32_t return_value = 0;
+
     start_time = hires_clock::now();
 
     // Transfer data
     for (; size > 0; size -= sizeof(arg)) {
-        var->method(arg);
+        // I need to copy every time arg because otherwise I would not be able to check the returned
+        // value, since every time arg_copy may be overwritten in the case of marshalling
+        memcpy(arg_copy, arg, sizeof(arg));
+        return_value = var->method(arg_copy);
+
+        if (return_value != expected_value) {
+            std::cerr << "Returned value is wrong!" << std::endl;
+            exit(EXIT_FAILURE);
+        }
     }
 
     end_time = hires_clock::now();
@@ -159,9 +180,11 @@ int main(int argc, char *argv[]) {
 
     srand(42);
 
-    for (long  i = 0; i < arg_length; ++i) {
+    for (long i = 0; i < arg_length; ++i) {
         arg[i] = rand();
     }
+
+    expected_value        = hash(arg, 1048576);
 
     // TODO: do something with this
     // std::cout << std::chrono::high_resolution_clock::period::den << std::endl;
@@ -186,15 +209,15 @@ int main(int argc, char *argv[]) {
     constexpr long max_size       = 4 * GB;
     constexpr long multiplier     = 8;
     constexpr long repetitions    = 16;
-    
+
     first_ever = true;
     std::cout << "Testing WITHOUT shared memory optimization..." << std::endl;
 
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));
     test_variable(profiler, min_size, max_size, multiplier, repetitions, filename);
 
-    for (long shmem_size = max_shmem_size; shmem_size > min_size; shmem_size /= (multiplier)) {
-        filename   = "results/shmem_" + std::to_string(shmem_size / 1024 / 1024) + "MB.dat";
+    for (long shmem_size = max_shmem_size; shmem_size >= min_size; shmem_size /= (multiplier)) {
+        filename = "results/shmem_" + std::to_string(shmem_size / 1024 / 1024) + "MB.dat";
         std::cout << "Testing WITH shared memory optimization with using " << shmem_size / 1024 / 1024
                   << "MB of shared memory..." << std::endl;
 
