@@ -204,9 +204,9 @@ int main(int argc, char *argv[]) {
     profiler_var profiler;
     std::string  filename = "results/socket.dat";
 
-    constexpr long max_shmem_size = 2 * GB;
+    constexpr long max_shmem_size = 4 * GB;
     constexpr long min_size       = 4 * MB;
-    constexpr long max_size       = 2 * GB;
+    constexpr long max_size       = 4 * GB;
     constexpr long multiplier     = 4;
     constexpr long repetitions    = 16;
 
@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
 
     for (long shmem_size = max_shmem_size; shmem_size >= min_size; shmem_size /= multiplier) {
         filename = "results/shmem_" + std::to_string(shmem_size / 1024 / 1024) + "MB.dat";
-        std::cout << "Testing WITH shared memory optimization with using " << shmem_size / 1024 / 1024
+        std::cout << "Testing WITH shared memory optimization using " << shmem_size / 1024 / 1024
                   << "MB of shared memory..." << std::endl;
 
         profiler = profiler::_assign(registry.get("remote_profiler_single", shmem_size));
