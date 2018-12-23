@@ -47,6 +47,20 @@ public:
     }
 };
 */
+
+
+// NOTICE: last bit must be 1 (or a 1 followed by zeros until the end of the chunk)
+
+int32_t hash(int32_t *data, size_t length) {
+    int32_t res = data[0];
+
+    for (size_t i = 1; i < length; ++i)
+        res ^= data[i];
+
+    return res;
+}
+
+
 class profiler_impl : public profiler_skeleton {
 
 public:

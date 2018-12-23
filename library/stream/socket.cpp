@@ -242,7 +242,7 @@ void forb::streams::socket::send(const void *buffer, std::size_t size) {
     while (remaining > 0) {
         how_many_sent = ::send(_sock_fd, buffer_ptr, remaining, 0);
 
-        if (how_many_sent < 0) {
+        if (how_many_sent <= 0) {
             throw forb::exception{
                     "Error while sending data: "
                     + std::string(std::strerror(errno))
@@ -278,7 +278,7 @@ void forb::streams::socket::recv(void *buffer, std::size_t size) {
     while (remaining > 0) {
         how_many_recv = ::read(_sock_fd, buffer_ptr, remaining);
 
-        if (how_many_recv < 0) {
+        if (how_many_recv <= 0) {
             throw forb::exception{
                     "Error while receiving data: "
                     + std::string(std::strerror(errno))

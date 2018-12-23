@@ -55,7 +55,9 @@ inline time_unit count_hours(duration d) {
     return duration_count<hours>(d);
 }
 
-int32_t arg[4 * MB / sizeof(int32_t)];
+constexpr long arg_length = 4 * MB / sizeof(int32_t);
+
+int32_t arg[arg_length];
 
 duration transfer_data(profiler_var &var, long size) {
     time_point start_time, end_time;
@@ -155,6 +157,12 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    srand(42);
+
+    for (long  i = 0; i < arg_length; ++i) {
+        arg[i] = rand();
+    }
+
     // TODO: do something with this
     // std::cout << std::chrono::high_resolution_clock::period::den << std::endl;
 
@@ -171,14 +179,22 @@ int main(int argc, char *argv[]) {
     }
 
     profiler_var profiler;
-    std::string  filename = "out/socket.dat";
+    std::string  filename = "results/socket.dat";
 
+    /*
     constexpr long max_shmem_size = 4 * GB;
     constexpr long min_size       = 4 * MB;
     constexpr long max_size       = 4 * GB;
     constexpr long multiplier     = 8;
-    constexpr long repetitions    = 8;
+    constexpr long repetitions    = 16;
+     */
 
+    // TODO: remove this, only for debug purposes
+    constexpr long max_shmem_size = 4 * MB;
+    constexpr long min_size       = 4 * MB;
+    constexpr long max_size       = 4 * MB;
+    constexpr long multiplier     = 8;
+    constexpr long repetitions    = 1;
 
     first_ever = true;
     std::cout << "Testing WITHOUT shared memory optimization..." << std::endl;
@@ -186,8 +202,8 @@ int main(int argc, char *argv[]) {
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));
     test_variable(profiler, min_size, max_size, multiplier, repetitions, filename);
 
-    for (long shmem_size = max_shmem_size; shmem_size > min_size; shmem_size /= (multiplier * 2)) {
-        filename   = "out/shmem_" + std::to_string(shmem_size / 1024 / 1024) + "MB.dat";
+    for (long shmem_size = max_shmem_size; shmem_size > min_size; shmem_size /= (multiplier)) {
+        filename   = "results/shmem_" + std::to_string(shmem_size / 1024 / 1024) + "MB.dat";
         std::cout << "Testing WITH shared memory optimization with using " << shmem_size / 1024 / 1024
                   << "MB of shared memory..." << std::endl;
 
