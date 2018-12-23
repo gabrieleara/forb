@@ -181,21 +181,12 @@ int main(int argc, char *argv[]) {
     profiler_var profiler;
     std::string  filename = "results/socket.dat";
 
-    /*
     constexpr long max_shmem_size = 4 * GB;
     constexpr long min_size       = 4 * MB;
     constexpr long max_size       = 4 * GB;
     constexpr long multiplier     = 8;
     constexpr long repetitions    = 16;
-     */
-
-    // TODO: remove this, only for debug purposes
-    constexpr long max_shmem_size = 4 * MB;
-    constexpr long min_size       = 4 * MB;
-    constexpr long max_size       = 4 * MB;
-    constexpr long multiplier     = 8;
-    constexpr long repetitions    = 1;
-
+    
     first_ever = true;
     std::cout << "Testing WITHOUT shared memory optimization..." << std::endl;
 
