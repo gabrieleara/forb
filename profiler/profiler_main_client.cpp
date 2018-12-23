@@ -25,9 +25,9 @@ using seconds = std::chrono::seconds;
 using minutes = std::chrono::minutes;
 using hours = std::chrono::hours;
 
-constexpr long KB = 1024L;
-constexpr long MB = KB * 1024L;
-constexpr long GB = MB * 1024L;
+constexpr size_t KB = 1024L;
+constexpr size_t MB = KB * 1024L;
+constexpr size_t GB = MB * 1024L;
 
 template<typename T_time>
 inline T_time duration_cast(duration d) {
@@ -67,8 +67,8 @@ int32_t hash(const int32_t *data, size_t length) {
 #define to_words(n) ((n)/4)
 #define to_bytes(n) ((n)*4)
 
-constexpr size_t arg_length  = to_words(4 * GB);
-constexpr size_t max_size    = to_words(4 * GB);
+constexpr size_t arg_length  = to_words(256 * MB);
+constexpr size_t max_size    = to_words(256 * MB);
 constexpr size_t min_size    = to_words(4 * MB);
 constexpr size_t multiplier  = 4;
 constexpr size_t repetitions = 16;
@@ -78,13 +78,14 @@ constexpr size_t sizes[] = {
         min_size * multiplier,
         min_size * multiplier * multiplier,
         min_size * multiplier * multiplier * multiplier,
-        min_size * multiplier * multiplier * multiplier * multiplier,
-        min_size * multiplier * multiplier * multiplier * multiplier * multiplier
+        // min_size * multiplier * multiplier * multiplier * multiplier,
+        // min_size * multiplier * multiplier * multiplier * multiplier * multiplier,
 };
 
 int32_t *arg      = new int32_t[arg_length];
 int32_t *arg_copy = new int32_t[arg_length];
-int32_t expected_value[6];
+// int32_t expected_value[6];
+int32_t expected_value[4];
 
 duration transfer_data(profiler_var &var, size_t size) {
     time_point start_time, end_time;
@@ -116,6 +117,7 @@ duration transfer_data(profiler_var &var, size_t size) {
             return_value = var->method3(arg_copy);
             index        = 3;
             break;
+            /*
         case sizes[4]:
             return_value = var->method4(arg_copy);
             index        = 4;
@@ -124,6 +126,7 @@ duration transfer_data(profiler_var &var, size_t size) {
             return_value = var->method5(arg_copy);
             index        = 5;
             break;
+             */
         default:
             assert(false);
             std::cerr << "Wrong size parameter: " << size << std::endl;
@@ -144,8 +147,6 @@ duration transfer_data(profiler_var &var, size_t size) {
 }
 
 // Online mean and variance algorithm, Knuth
-
-bool first_ever = true;
 
 void test_size(profiler_var &var, size_t size, std::vector<duration> &samples) {
     // First transfer is discarded because we want to measure the system at "steady state"
@@ -181,10 +182,9 @@ void test_variable(profiler_var &var,
     int i = 0;
 
     for (size_t size = min_size; size <= max_size; size *= multiplier) {
-        std::cout << size / 1024 / 1024 << "MB\t";
+        std::cout << to_bytes(size) / 1024 / 1024 << "MB\t";
         std::cout.flush();
 
-        first_ever = true;
         test_size(var, size, samples);
         ++i;
 
@@ -248,9 +248,7 @@ int main(int argc, char *argv[]) {
 
     profiler_var profiler;
     std::string  filename = "results/socket.dat";
-
-
-    first_ever = true;
+    
     std::cout << "Testing WITHOUT shared memory optimization..." << std::endl;
 
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));

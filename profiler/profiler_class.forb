@@ -15,7 +15,7 @@ module forb_profiler {
         int method1(in int arg[4194304]);
         int method2(in int arg[16777216]);
         int method3(in int arg[67108864]);
-        int method4(in int arg[268435456]);
-        int method5(in int arg[1073741824]);
+        // int method4(in int arg[268435456]);
+        // int method5(in int arg[1073741824]);
     };
 };
