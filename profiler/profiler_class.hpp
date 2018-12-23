@@ -20,8 +20,6 @@ namespace forb_profiler {
         int32_t method1(int32_t arg[4194304]);
         int32_t method2(int32_t arg[16777216]);
         int32_t method3(int32_t arg[67108864]);
-        int32_t method4(int32_t arg[268435456]);
-        int32_t method5(int32_t arg[1073741824]);
         
     protected:
         // Virtual methods needed for the factory
@@ -63,8 +61,6 @@ namespace forb_profiler {
         virtual int32_t method1(int32_t arg[4194304]) = 0;
         virtual int32_t method2(int32_t arg[16777216]) = 0;
         virtual int32_t method3(int32_t arg[67108864]) = 0;
-        virtual int32_t method4(int32_t arg[268435456]) = 0;
-        virtual int32_t method5(int32_t arg[1073741824]) = 0;
         
     protected:
         void execute_call(forb::call_id_t code,
@@ -79,8 +75,6 @@ namespace forb_profiler {
         _Fmethod1E30_Forb_Array_int32_t_D_4194304_,
         _Fmethod2E31_Forb_Array_int32_t_D_16777216_,
         _Fmethod3E31_Forb_Array_int32_t_D_67108864_,
-        _Fmethod4E32_Forb_Array_int32_t_D_268435456_,
-        _Fmethod5E33_Forb_Array_int32_t_D_1073741824_,
     };
     
     

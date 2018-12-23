@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 
     profiler_var profiler;
     std::string  filename = "results/socket.dat";
-    
+
     std::cout << "Testing WITHOUT shared memory optimization..." << std::endl;
 
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));

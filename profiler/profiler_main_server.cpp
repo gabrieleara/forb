@@ -29,8 +29,8 @@ public:
     int method1(int data[4194304]) override { return hash(data, 4194304); };
     int method2(int data[16777216]) override { return hash(data, 16777216); };
     int method3(int data[67108864]) override { return hash(data, 67108864); };
-    int method4(int data[268435456]) override { return hash(data, 268435456); };
-    int method5(int data[1073741824]) override { return hash(data, 1073741824); };
+//    int method4(int data[268435456]) override { return hash(data, 268435456); };
+//    int method5(int data[1073741824]) override { return hash(data, 1073741824); };
 };
 
 int main() {

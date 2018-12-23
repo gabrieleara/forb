@@ -180,66 +180,6 @@ int32_t forb_profiler::profiler::method3(int32_t arg[67108864]) {
     return res_value;
 }
 
-int32_t forb_profiler::profiler::method4(int32_t arg[268435456]) {
-    // Calls cannot be executed concurrently, since the connection is recycled for each call.
-    std::lock_guard<std::mutex> lock{base_stub::_mutex};
-    
-    this->init_call(forb::call_id_t_cast(profiler_method_codes::_Fmethod4E32_Forb_Array_int32_t_D_268435456_));
-    
-    // Objects serialization
-    if (datastream->require_marshal()) {
-        // Data requires marshalling before being sent
-        forb::streams::marshal(arg, 268435456);
-    }
-    
-    // Now write stuff to the stream
-    datastream->send(arg, sizeof(int32_t) * 268435456);
-    
-    // Wait for the response
-    this->wait_return();
-    
-    // Finally read returned value
-    int32_t res_value;
-    
-    datastream->recv(&res_value, sizeof(res_value));
-    
-    if (datastream->require_marshal()) {
-        res_value = forb::streams::unmarshal(res_value);
-    }
-    
-    return res_value;
-}
-
-int32_t forb_profiler::profiler::method5(int32_t arg[1073741824]) {
-    // Calls cannot be executed concurrently, since the connection is recycled for each call.
-    std::lock_guard<std::mutex> lock{base_stub::_mutex};
-    
-    this->init_call(forb::call_id_t_cast(profiler_method_codes::_Fmethod5E33_Forb_Array_int32_t_D_1073741824_));
-    
-    // Objects serialization
-    if (datastream->require_marshal()) {
-        // Data requires marshalling before being sent
-        forb::streams::marshal(arg, 1073741824);
-    }
-    
-    // Now write stuff to the stream
-    datastream->send(arg, sizeof(int32_t) * 1073741824);
-    
-    // Wait for the response
-    this->wait_return();
-    
-    // Finally read returned value
-    int32_t res_value;
-    
-    datastream->recv(&res_value, sizeof(res_value));
-    
-    if (datastream->require_marshal()) {
-        res_value = forb::streams::unmarshal(res_value);
-    }
-    
-    return res_value;
-}
-
 
 /// This method dispatches the call to the right virtual method, which must be redefined in a subclass.
 void forb_profiler::profiler_skeleton::execute_call(forb::call_id_t code,
@@ -353,62 +293,6 @@ void forb_profiler::profiler_skeleton::execute_call(forb::call_id_t code,
             // Perform virtual call
             int32_t res_value;
             res_value = method3(arg.get());
-            
-            if (datastream->require_marshal()) {
-                res_value = forb::streams::marshal(res_value);
-            }
-            datastream->send(&res_value, sizeof(res_value));
-        }
-            break;
-            
-        case profiler_method_codes::_Fmethod4E32_Forb_Array_int32_t_D_268435456_: {
-            std::unique_ptr<int32_t[]> arg = std::make_unique<int32_t[]>(268435456);
-            
-            datastream->recv(arg.get(), sizeof(int32_t) * 268435456);
-            
-            if (datastream->require_marshal()) {
-                forb::streams::unmarshal(arg.get(), 268435456);
-            }
-            
-            // Send over callstream an ACK
-            forb::res_code_t  res_code = 1;
-            if (callstream->require_marshal()) {
-                res_code = forb::streams::marshal(res_code);
-            }
-            
-            callstream->send(&res_code, sizeof(res_code));
-            
-            // Perform virtual call
-            int32_t res_value;
-            res_value = method4(arg.get());
-            
-            if (datastream->require_marshal()) {
-                res_value = forb::streams::marshal(res_value);
-            }
-            datastream->send(&res_value, sizeof(res_value));
-        }
-            break;
-            
-        case profiler_method_codes::_Fmethod5E33_Forb_Array_int32_t_D_1073741824_: {
-            std::unique_ptr<int32_t[]> arg = std::make_unique<int32_t[]>(1073741824);
-            
-            datastream->recv(arg.get(), sizeof(int32_t) * 1073741824);
-            
-            if (datastream->require_marshal()) {
-                forb::streams::unmarshal(arg.get(), 1073741824);
-            }
-            
-            // Send over callstream an ACK
-            forb::res_code_t  res_code = 1;
-            if (callstream->require_marshal()) {
-                res_code = forb::streams::marshal(res_code);
-            }
-            
-            callstream->send(&res_code, sizeof(res_code));
-            
-            // Perform virtual call
-            int32_t res_value;
-            res_value = method5(arg.get());
             
             if (datastream->require_marshal()) {
                 res_value = forb::streams::marshal(res_value);
