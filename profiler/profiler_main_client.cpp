@@ -64,31 +64,76 @@ int32_t hash(const int32_t *data, size_t length) {
     return res;
 }
 
-constexpr long arg_length = 4 * MB / sizeof(int32_t);
+#define to_words(n) ((n)/4)
+#define to_bytes(n) ((n)*4)
 
-int32_t arg[arg_length];
-int32_t arg_copy[arg_length];
-int32_t expected_value;
+constexpr size_t arg_length  = to_words(4 * GB);
+constexpr size_t max_size    = to_words(4 * GB);
+constexpr size_t min_size    = to_words(4 * MB);
+constexpr size_t multiplier  = 4;
+constexpr size_t repetitions = 16;
 
-duration transfer_data(profiler_var &var, long size) {
+constexpr size_t sizes[] = {
+        min_size,
+        min_size * multiplier,
+        min_size * multiplier * multiplier,
+        min_size * multiplier * multiplier * multiplier,
+        min_size * multiplier * multiplier * multiplier * multiplier,
+        min_size * multiplier * multiplier * multiplier * multiplier * multiplier
+};
+
+int32_t *arg      = new int32_t[arg_length];
+int32_t *arg_copy = new int32_t[arg_length];
+int32_t expected_value[6];
+
+duration transfer_data(profiler_var &var, size_t size) {
     time_point start_time, end_time;
     duration   time_elapsed;
 
     int32_t return_value = 0;
+    size_t  index        = 0;
+
+    // I need to copy every time arg because otherwise I would not be able to check the returned
+    // value, since every time arg_copy may be overwritten in the case of marshalling
+    memcpy(arg_copy, arg, to_bytes(size));
 
     start_time = hires_clock::now();
 
-    // Transfer data
-    for (; size > 0; size -= sizeof(arg)) {
-        // I need to copy every time arg because otherwise I would not be able to check the returned
-        // value, since every time arg_copy may be overwritten in the case of marshalling
-        memcpy(arg_copy, arg, sizeof(arg));
-        return_value = var->method(arg_copy);
-
-        if (return_value != expected_value) {
-            std::cerr << "Returned value is wrong!" << std::endl;
+    switch (size) {
+        case sizes[0]:
+            return_value = var->method0(arg_copy);
+            index        = 0;
+            break;
+        case sizes[1]:
+            return_value = var->method1(arg_copy);
+            index        = 1;
+            break;
+        case sizes[2]:
+            return_value = var->method2(arg_copy);
+            index        = 2;
+            break;
+        case sizes[3]:
+            return_value = var->method3(arg_copy);
+            index        = 3;
+            break;
+        case sizes[4]:
+            return_value = var->method4(arg_copy);
+            index        = 4;
+            break;
+        case sizes[5]:
+            return_value = var->method5(arg_copy);
+            index        = 5;
+            break;
+        default:
+            assert(false);
+            std::cerr << "Wrong size parameter: " << size << std::endl;
             exit(EXIT_FAILURE);
-        }
+    }
+
+    // Transfer data
+    if (return_value != expected_value[index]) {
+        std::cerr << "Returned value is wrong!" << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     end_time = hires_clock::now();
@@ -102,14 +147,14 @@ duration transfer_data(profiler_var &var, long size) {
 
 bool first_ever = true;
 
-void test_size(profiler_var &var, unsigned long size, std::vector<duration> &samples) {
-    if (first_ever) {
+void test_size(profiler_var &var, size_t size, std::vector<duration> &samples) {
+    // First transfer is discarded because we want to measure the system at "steady state"
+    if (size == sizes[0]) {
         transfer_data(var, size);
-        first_ever = false;
     }
 
-    for (auto &iterator : samples) {
-        iterator = transfer_data(var, size);
+    for (auto &sample : samples) {
+        sample = transfer_data(var, size);
         std::cout << ".";
         std::cout.flush();
     }
@@ -125,10 +170,6 @@ inline void print_vector(std::ostream &out, unsigned long size, const std::vecto
 }
 
 void test_variable(profiler_var &var,
-                   unsigned long min_size,
-                   unsigned long max_size,
-                   unsigned long multiplier,
-                   unsigned long repetitions,
                    std::string filename) {
     std::vector<duration>  samples = std::vector<duration>(repetitions);
     std::vector<time_unit> values  = std::vector<time_unit>(repetitions);
@@ -137,35 +178,23 @@ void test_variable(profiler_var &var,
 
     out << "#MB\tmicroseconds" << std::endl << std::endl;
 
-    // statistics<duration> stats;
+    int i = 0;
 
-    for (unsigned long size = min_size; size <= max_size; size *= multiplier) {
+    for (size_t size = min_size; size <= max_size; size *= multiplier) {
         std::cout << size / 1024 / 1024 << "MB\t";
         std::cout.flush();
 
         first_ever = true;
-
         test_size(var, size, samples);
+        ++i;
 
         std::cout << std::endl;
 
-        for (unsigned int i = 0; i < repetitions; ++i) {
+        for (size_t i = 0; i < repetitions; ++i) {
             values[i] = count_micros(samples[i]);
         }
 
         print_vector(out, size, values);
-
-        /*
-        stats = statistics<duration>::calculate_stats(samples);
-
-        std::cout << size
-                  << "," << count_micros(stats.minimum)
-                  << "," << count_micros(stats.first_quartile)
-                  << "," << count_micros(stats.median)
-                  << "," << count_micros(stats.third_quartile)
-                  << "," << count_micros(stats.maximum)
-                  << std::endl;
-        */
     }
 
 
@@ -180,11 +209,27 @@ int main(int argc, char *argv[]) {
 
     srand(42);
 
-    for (long i = 0; i < arg_length; ++i) {
-        arg[i] = rand();
+    std::cout << "Preparing data ";
+    std::cout.flush();
+
+    size_t i;
+    size_t j;
+
+    for (i = 0; i < arg_length; i += j) {
+        for (j = 0; j < to_words(128 * MB); ++j) {
+            arg[i + j] = rand();
+        }
+        std::cout << '.';
+        std::cout.flush();
     }
 
-    expected_value        = hash(arg, 1048576);
+    std::cout << "\r\n" << std::endl;
+
+    i = 0;
+    for (size_t size      = min_size; size <= max_size; size *= multiplier) {
+        expected_value[i] = hash(arg, size);
+        ++i;
+    }
 
     // TODO: do something with this
     // std::cout << std::chrono::high_resolution_clock::period::den << std::endl;
@@ -204,25 +249,20 @@ int main(int argc, char *argv[]) {
     profiler_var profiler;
     std::string  filename = "results/socket.dat";
 
-    constexpr long max_shmem_size = 4 * GB;
-    constexpr long min_size       = 4 * MB;
-    constexpr long max_size       = 4 * GB;
-    constexpr long multiplier     = 4;
-    constexpr long repetitions    = 16;
 
     first_ever = true;
     std::cout << "Testing WITHOUT shared memory optimization..." << std::endl;
 
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));
-    test_variable(profiler, min_size, max_size, multiplier, repetitions, filename);
+    test_variable(profiler, filename);
 
-    for (long shmem_size = max_shmem_size; shmem_size >= min_size; shmem_size /= multiplier) {
-        filename = "results/shmem_" + std::to_string(shmem_size / 1024 / 1024) + "MB.dat";
-        std::cout << "Testing WITH shared memory optimization using " << shmem_size / 1024 / 1024
+    for (size_t shmem_size = max_size; shmem_size >= min_size; shmem_size /= multiplier) {
+        filename = "results/shmem_" + std::to_string(to_bytes(shmem_size) / 1024 / 1024) + "MB.dat";
+        std::cout << "Testing WITH shared memory optimization using " << to_bytes(shmem_size) / 1024 / 1024
                   << "MB of shared memory..." << std::endl;
 
         profiler = profiler::_assign(registry.get("remote_profiler_single", shmem_size));
-        test_variable(profiler, min_size, max_size, multiplier, repetitions, filename);
+        test_variable(profiler, filename);
     }
 
     return 0;

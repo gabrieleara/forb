@@ -7,47 +7,6 @@
 #include "profiler_class.hpp"
 
 using namespace forb_profiler;
-/*
-class profiler_class_impl : public profiler_class_skeleton {
-
-public:
-    // Importing constructors from base class
-    using profiler_class_skeleton::profiler_class_skeleton;
-
-    // Methods as listed in the specification file
-
-    // Each of them does nothing of course
-
-    int32_t method00(int8_t *) override {
-        return 0;
-    }
-
-    int32_t method01(int8_t *) override {
-        return 0;
-    }
-
-    int32_t method02(int8_t *) override {
-        return 0;
-    }
-
-    int32_t method03(int8_t *) override {
-        return 0;
-    }
-
-    int32_t method04(int8_t *) override {
-        return 0;
-    }
-
-    int32_t method05(int8_t *) override {
-        return 0;
-    }
-
-    int32_t method06(int8_t *) override {
-        return 0;
-    }
-};
-*/
-
 
 // NOTICE: last bit must be 1 (or a 1 followed by zeros until the end of the chunk)
 
@@ -66,14 +25,12 @@ public:
     // Importing constructors from base class
     using profiler_skeleton::profiler_skeleton;
 
-    // The method itself does nothing of course
-    int method(int32_t data[1048576]) override {
-        return hash(data, 1048576);
-    };
-
-    forb_profiler::roba method2(int32_t [1048576]) override {
-        return forb_profiler::roba{};
-    }
+    int method0(int data[1048576]) override { return hash(data, 1048576); };
+    int method1(int data[4194304]) override { return hash(data, 4194304); };
+    int method2(int data[16777216]) override { return hash(data, 16777216); };
+    int method3(int data[67108864]) override { return hash(data, 67108864); };
+    int method4(int data[268435456]) override { return hash(data, 268435456); };
+    int method5(int data[1073741824]) override { return hash(data, 1073741824); };
 };
 
 int main() {
@@ -81,5 +38,6 @@ int main() {
 
     server_single.start_server();
 
+    server_single.join_server();
     server_single.join_server();
 }

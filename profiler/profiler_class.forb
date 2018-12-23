@@ -1,26 +1,21 @@
 module forb_profiler {
-    // Simple conversion table:
+    // Simple conversion table, using the following convention:
+    // 1M = 1048576
 
-    // 8    KB = 8192       B
-    // 1    KB = 1024       B
-    // 32   KB = 32768      B
-    // 128  KB = 131072     B
-    // 512  KB = 524288     B
-    // 1    MB = 1048576    B
-    // 4    MB = 4194304    B
-    // More than 8 MB on the stack are prohibited and very unlikely to be used
-
-    struct roba {
-        char a[131072];
-    };
+    // 4    MB = 1048576    words = 1M words
+    // 16   MB = 4194304    words
+    // 64   MB = 16777216   words
+    // 256  MB = 67108864   words
+    // 1024 MB = 268435456  words
+    // 4096 MB = 1073741824 words
 
     interface profiler {
-        /*
-         * The return type is not void to force the library to send back a result
-         * after all data has been received.
-         */
-        int method(in int arg[1048576]); // 1M words = 4MB
-
-        roba method2(in int arg[1048576]); // 1M words = 4MB
+        // Return value will be the XOR of all the words given as input
+        int method0(in int arg[1048576]);
+        int method1(in int arg[4194304]);
+        int method2(in int arg[16777216]);
+        int method3(in int arg[67108864]);
+        int method4(in int arg[268435456]);
+        int method5(in int arg[1073741824]);
     };
 };
