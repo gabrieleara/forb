@@ -67,8 +67,8 @@ int32_t hash(const int32_t *data, size_t length) {
 #define to_words(n) ((n)/4)
 #define to_bytes(n) ((n)*4)
 
-constexpr size_t arg_length  = to_words(256 * MB);
-constexpr size_t max_size    = to_words(256 * MB);
+constexpr size_t arg_length  = to_words(512 * MB);
+constexpr size_t max_size    = to_words(512 * MB);
 constexpr size_t min_size    = to_words(4 * MB);
 constexpr size_t multiplier  = 2;
 constexpr size_t repetitions = 16;
@@ -99,60 +99,51 @@ int32_t *arg_copy = new int32_t[arg_length];
 // int32_t expected_value[6];
 int32_t expected_value[8];
 
-duration transfer_data(profiler_var &var, size_t size) {
+duration transfer_data(profiler_var &var, size_t i) {
     time_point start_time, end_time;
     duration   time_elapsed;
 
     int32_t return_value = 0;
-    size_t  index        = 0;
 
     // I need to copy every time arg because otherwise I would not be able to check the returned
     // value, since every time arg_copy may be overwritten in the case of marshalling
-    memcpy(arg_copy, arg, to_bytes(size));
+    memcpy(arg_copy, arg, to_bytes(sizes[i]));
 
     start_time = hires_clock::now();
 
-    switch (size) {
-        case sizes[0]:
+    switch (i) {
+        case 0:
             return_value = var->method0(arg_copy);
-            index        = 0;
             break;
-        case sizes[1]:
+        case 1:
             return_value = var->method1(arg_copy);
-            index        = 1;
             break;
-        case sizes[2]:
+        case 2:
             return_value = var->method2(arg_copy);
-            index        = 2;
             break;
-        case sizes[3]:
+        case 3:
             return_value = var->method3(arg_copy);
-            index        = 3;
             break;
-        case sizes[4]:
+        case 4:
             return_value = var->method4(arg_copy);
-            index        = 4;
             break;
-        case sizes[5]:
+        case 5:
             return_value = var->method5(arg_copy);
-            index        = 5;
             break;
-        case sizes[6]:
+        case 6:
             return_value = var->method6(arg_copy);
-            index        = 5;
             break;
-        case sizes[7]:
+        case 7:
             return_value = var->method7(arg_copy);
-            index        = 5;
             break;
         default:
             assert(false);
-            std::cerr << "Wrong size parameter: " << size << std::endl;
+            std::cerr << "Wrong parameter i: " << i << std::endl;
             exit(EXIT_FAILURE);
     }
 
     // Transfer data
-    if (return_value != expected_value[index]) {
+    if (return_value != expected_value[i]) {
         std::cerr << "Returned value is wrong!" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -166,21 +157,19 @@ duration transfer_data(profiler_var &var, size_t size) {
 
 // Online mean and variance algorithm, Knuth
 
-void test_size(profiler_var &var, size_t size, std::vector<duration> &samples) {
+void test_size(profiler_var &var, size_t i, std::vector<duration> &samples) {
     // First transfer is discarded because we want to measure the system at "steady state"
-    if (size == sizes[0]) {
-        transfer_data(var, size);
-    }
+    transfer_data(var, i);
 
     for (auto &sample : samples) {
-        sample = transfer_data(var, size);
+        sample = transfer_data(var, i);
         std::cout << ".";
         std::cout.flush();
     }
 }
 
 template<typename T>
-inline void print_vector(std::ostream &out, unsigned long size, const std::vector<T> &v) {
+inline void print_vector(std::ostream &out, size_t size, const std::vector<T> &v) {
     for (auto it : v) {
         out << size / 1024 / 1024 << "\t" << it << std::endl;
     }
@@ -188,8 +177,7 @@ inline void print_vector(std::ostream &out, unsigned long size, const std::vecto
     out << std::endl << std::endl;
 }
 
-void test_variable(profiler_var &var,
-                   std::string filename) {
+void test_variable(profiler_var &var, std::string filename) {
     std::vector<duration>  samples = std::vector<duration>(repetitions);
     std::vector<time_unit> values  = std::vector<time_unit>(repetitions);
 
@@ -197,24 +185,25 @@ void test_variable(profiler_var &var,
 
     out << "#MB\tmicroseconds" << std::endl << std::endl;
 
-    int i = 0;
+    for (size_t i = 0; i < 8; ++i) {
+        size_t size = sizes[i];
 
-    for (size_t size = min_size; size <= max_size; size *= multiplier) {
         std::cout << to_bytes(size) / 1024 / 1024 << "MB\t";
         std::cout.flush();
 
-        test_size(var, to_bytes(size), samples);
-        ++i;
+        // First transfer of each size is discarded because we want to measure the system at "steady state"
+        transfer_data(var, i);
+
+        for (size_t j = 0; j < repetitions; ++j) {
+            values[j] = count_micros(transfer_data(var, i));
+            std::cout << ".";
+            std::cout.flush();
+        }
 
         std::cout << std::endl;
 
-        for (size_t i = 0; i < repetitions; ++i) {
-            values[i] = count_micros(samples[i]);
-        }
-
         print_vector(out, size, values);
     }
-
 
 }
 
@@ -242,11 +231,8 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << "\r\n" << std::endl;
-
-    i = 0;
-    for (size_t size      = min_size; size <= max_size; size *= multiplier) {
-        expected_value[i] = hash(arg, size);
-        ++i;
+    for (i = 0; i < 8; ++i) {
+        expected_value[i] = hash(arg, sizes[i]);
     }
 
     // TODO: do something with this
@@ -272,7 +258,8 @@ int main(int argc, char *argv[]) {
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));
     test_variable(profiler, filename);
 
-    for (size_t shmem_size = max_size; shmem_size >= min_size; shmem_size /= multiplier) {
+    for (i = 8-1; i >= 0; --i) {
+        size_t shmem_size = sizes[i];
         filename = "results/shmem_" + std::to_string(to_bytes(shmem_size) / 1024 / 1024) + "MB.dat";
         std::cout << "Testing WITH shared memory optimization using " << to_bytes(shmem_size) / 1024 / 1024
                   << "MB of shared memory..." << std::endl;
