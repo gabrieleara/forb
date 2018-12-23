@@ -17,9 +17,13 @@ namespace forb_profiler {
     public:
         // Methods as listed in the specification file
         int32_t method0(int32_t arg[1048576]);
-        int32_t method1(int32_t arg[4194304]);
-        int32_t method2(int32_t arg[16777216]);
-        int32_t method3(int32_t arg[67108864]);
+        int32_t method1(int32_t arg[2097152]);
+        int32_t method2(int32_t arg[4194304]);
+        int32_t method3(int32_t arg[8388608]);
+        int32_t method4(int32_t arg[16777216]);
+        int32_t method5(int32_t arg[33554432]);
+        int32_t method6(int32_t arg[67108864]);
+        int32_t method7(int32_t arg[134217728]);
         
     protected:
         // Virtual methods needed for the factory
@@ -58,9 +62,13 @@ namespace forb_profiler {
         
         // Methods as listed in the specification file
         virtual int32_t method0(int32_t arg[1048576]) = 0;
-        virtual int32_t method1(int32_t arg[4194304]) = 0;
-        virtual int32_t method2(int32_t arg[16777216]) = 0;
-        virtual int32_t method3(int32_t arg[67108864]) = 0;
+        virtual int32_t method1(int32_t arg[2097152]) = 0;
+        virtual int32_t method2(int32_t arg[4194304]) = 0;
+        virtual int32_t method3(int32_t arg[8388608]) = 0;
+        virtual int32_t method4(int32_t arg[16777216]) = 0;
+        virtual int32_t method5(int32_t arg[33554432]) = 0;
+        virtual int32_t method6(int32_t arg[67108864]) = 0;
+        virtual int32_t method7(int32_t arg[134217728]) = 0;
         
     protected:
         void execute_call(forb::call_id_t code,
@@ -72,9 +80,13 @@ namespace forb_profiler {
     /// Enumerator used to distinguish the requested call.
     enum class profiler_method_codes : forb::call_id_t {
         _Fmethod0E30_Forb_Array_int32_t_D_1048576_,
-        _Fmethod1E30_Forb_Array_int32_t_D_4194304_,
-        _Fmethod2E31_Forb_Array_int32_t_D_16777216_,
-        _Fmethod3E31_Forb_Array_int32_t_D_67108864_,
+        _Fmethod1E30_Forb_Array_int32_t_D_2097152_,
+        _Fmethod2E30_Forb_Array_int32_t_D_4194304_,
+        _Fmethod3E30_Forb_Array_int32_t_D_8388608_,
+        _Fmethod4E31_Forb_Array_int32_t_D_16777216_,
+        _Fmethod5E31_Forb_Array_int32_t_D_33554432_,
+        _Fmethod6E31_Forb_Array_int32_t_D_67108864_,
+        _Fmethod7E32_Forb_Array_int32_t_D_134217728_,
     };
     
     

@@ -70,22 +70,34 @@ int32_t hash(const int32_t *data, size_t length) {
 constexpr size_t arg_length  = to_words(256 * MB);
 constexpr size_t max_size    = to_words(256 * MB);
 constexpr size_t min_size    = to_words(4 * MB);
-constexpr size_t multiplier  = 4;
+constexpr size_t multiplier  = 2;
 constexpr size_t repetitions = 16;
 
-constexpr size_t sizes[] = {
+// Exponentiation by square, source: Wikipedia
+template<typename B, typename E>
+constexpr B pow(B base, E exponent) {
+    return (exponent == 0)
+           ? 1 : (exponent == 1)
+                 ? base : (exponent & 0x1)
+                          ? base * pow(base * base, (exponent - 1) / 2)
+                          : pow(base * base, exponent / 2);
+};
+
+constexpr size_t sizes[8] = {
         min_size,
         min_size * multiplier,
-        min_size * multiplier * multiplier,
-        min_size * multiplier * multiplier * multiplier,
-        // min_size * multiplier * multiplier * multiplier * multiplier,
-        // min_size * multiplier * multiplier * multiplier * multiplier * multiplier,
+        min_size * pow(multiplier, 2),
+        min_size * pow(multiplier, 3),
+        min_size * pow(multiplier, 4),
+        min_size * pow(multiplier, 5),
+        min_size * pow(multiplier, 6),
+        min_size * pow(multiplier, 7),
 };
 
 int32_t *arg      = new int32_t[arg_length];
 int32_t *arg_copy = new int32_t[arg_length];
 // int32_t expected_value[6];
-int32_t expected_value[4];
+int32_t expected_value[8];
 
 duration transfer_data(profiler_var &var, size_t size) {
     time_point start_time, end_time;

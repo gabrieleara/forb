@@ -3,19 +3,23 @@ module forb_profiler {
     // 1M = 1048576
 
     // 4    MB = 1048576    words = 1M words
+    // 8    MB = 2097152    words
     // 16   MB = 4194304    words
+    // 32   MB = 8388608    words
     // 64   MB = 16777216   words
+    // 128  MB = 33554432   words
     // 256  MB = 67108864   words
-    // 1024 MB = 268435456  words
-    // 4096 MB = 1073741824 words
+    // 512  MB = 134217728  words
 
     interface profiler {
         // Return value will be the XOR of all the words given as input
-        int method0(in int arg[1048576]);
-        int method1(in int arg[4194304]);
-        int method2(in int arg[16777216]);
-        int method3(in int arg[67108864]);
-        // int method4(in int arg[268435456]);
-        // int method5(in int arg[1073741824]);
+        int method0(in int arg[1048576    ]);
+        int method1(in int arg[2097152    ]);
+        int method2(in int arg[4194304    ]);
+        int method3(in int arg[8388608    ]);
+        int method4(in int arg[16777216   ]);
+        int method5(in int arg[33554432   ]);
+        int method6(in int arg[67108864   ]);
+        int method7(in int arg[134217728  ]);
     };
 };

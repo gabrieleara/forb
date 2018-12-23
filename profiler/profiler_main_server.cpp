@@ -25,10 +25,16 @@ public:
     // Importing constructors from base class
     using profiler_skeleton::profiler_skeleton;
 
-    int method0(int data[1048576]) override { return hash(data, 1048576); };
-    int method1(int data[4194304]) override { return hash(data, 4194304); };
-    int method2(int data[16777216]) override { return hash(data, 16777216); };
-    int method3(int data[67108864]) override { return hash(data, 67108864); };
+    int method0(int data[1048576    ]) override { return hash(data, 1048576    ); };
+    int method1(int data[2097152    ]) override { return hash(data, 2097152    ); };
+    int method2(int data[4194304    ]) override { return hash(data, 4194304    ); };
+    int method3(int data[8388608    ]) override { return hash(data, 8388608    ); };
+    int method4(int data[16777216   ]) override { return hash(data, 16777216   ); };
+    int method5(int data[33554432   ]) override { return hash(data, 33554432   ); };
+    int method6(int data[67108864   ]) override { return hash(data, 67108864   ); };
+    int method7(int data[134217728  ]) override { return hash(data, 134217728  ); };
+
+
 //    int method4(int data[268435456]) override { return hash(data, 268435456); };
 //    int method5(int data[1073741824]) override { return hash(data, 1073741824); };
 };
