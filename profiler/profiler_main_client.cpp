@@ -185,7 +185,7 @@ void test_variable(profiler_var &var,
         std::cout << to_bytes(size) / 1024 / 1024 << "MB\t";
         std::cout.flush();
 
-        test_size(var, size, samples);
+        test_size(var, to_bytes(size), samples);
         ++i;
 
         std::cout << std::endl;
