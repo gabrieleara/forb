@@ -129,7 +129,6 @@ duration transfer_data(profiler_var &var, size_t size) {
             return_value = var->method3(arg_copy);
             index        = 3;
             break;
-            /*
         case sizes[4]:
             return_value = var->method4(arg_copy);
             index        = 4;
@@ -138,7 +137,14 @@ duration transfer_data(profiler_var &var, size_t size) {
             return_value = var->method5(arg_copy);
             index        = 5;
             break;
-             */
+        case sizes[6]:
+            return_value = var->method6(arg_copy);
+            index        = 5;
+            break;
+        case sizes[7]:
+            return_value = var->method7(arg_copy);
+            index        = 5;
+            break;
         default:
             assert(false);
             std::cerr << "Wrong size parameter: " << size << std::endl;
