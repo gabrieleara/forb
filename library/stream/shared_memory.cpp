@@ -45,27 +45,54 @@ struct forb::streams::shared_memory::shmem_data {
     condition_t non_full;
 
     /// Consuming pointer
-    index_t rear;
+    volatile index_t rear;
 
     /// Producing pointer
-    index_t front;
+    volatile index_t front;
 
     /// The dimension of the data buffer, since the structure will stretch
     /// automatically that attribute to fit the requested buffer size.
     size_t data_size;
 
     /// Counts the number of free spaces within the shared memory.
-    size_t how_many_free;
+    volatile size_t how_many_free;
 
     /// Counts the number of data spaces occupied within the shared memory.
     /// NOTICE: some spaces may be temporarily not free nor marked as data,
     /// while they are filled by the producer or emptied by the consumer.
-    size_t how_many_data;
+    volatile size_t how_many_data;
 
     /// Data buffer, to be expanded when shared memory is allocated
-    unsigned char data[1]; // from C++98
-    // std::byte data[1]; // from C++17
+    volatile unsigned char data[1]; // from C++98
+    // volatile std::byte data[1]; // from C++17
 };
+
+/// This function implements a memcpy abstract that is valid also
+/// for volatile data.
+/// The standard memcpy function is not suitable for volatile arrays
+/// because the volatile attribute is dropped when the function is called,
+/// while this one keeps the volatile attributes of either dest or src.
+/// It may however not be as efficient as standard memcpy though.
+template<typename D, typename S>
+D *my_memcpy(D *dest, const S *src, size_t n) {
+    using D_t = typename std::decay<D>::type;
+    using S_t = typename std::decay<S>::type;
+
+    static_assert(std::is_same<D_t, S_t>::value,
+                  "Basic types of dest and src must be the same!");
+
+    auto dest_copy = dest;
+
+    while (n > 0) {
+        *dest = *src;
+        ++dest;
+        ++src;
+        --n;
+    }
+
+    return dest_copy;
+}
+
 
 namespace forb {
     namespace streams {
@@ -230,6 +257,12 @@ void forb::streams::shared_memory::send(const void *buffer, size_t size) {
             available_contiguous_space = _pointer->rear - _pointer->front;
         }
 
+        // This is necessary because sometimes pointers are moved
+        // before the corresponding action is actually terminated,
+        // while how_many_free update is the last action performed always
+        if (available_contiguous_space > _pointer->how_many_free)
+            available_contiguous_space = _pointer->how_many_free;
+
         how_many_sending_now = (remaining <= available_contiguous_space) ?
                                remaining : available_contiguous_space;
 
@@ -239,9 +272,9 @@ void forb::streams::shared_memory::send(const void *buffer, size_t size) {
         pthread_mutex_unlock(&_pointer->mutex);
 
         // Ok, I can write how_many_sending_now data starting from start_index position
-        ::memcpy(_pointer->data + start_index,
-                 buffer_ptr,
-                 how_many_sending_now);
+        my_memcpy(_pointer->data + start_index,
+                  buffer_ptr,
+                  how_many_sending_now);
 
         remaining -= how_many_sending_now;
         buffer_ptr += how_many_sending_now;
@@ -286,6 +319,12 @@ void forb::streams::shared_memory::recv(void *buffer, size_t size) {
             available_contiguous_data = _pointer->data_size - _pointer->rear;
         }
 
+        // This is necessary because sometimes pointers are moved
+        // before the corresponding action is actually terminated,
+        // while how_many_data update is the last action performed always
+        if (available_contiguous_data > _pointer->how_many_data)
+            available_contiguous_data = _pointer->how_many_data;
+
         how_many_receiving_now = (remaining <= available_contiguous_data) ?
                                  remaining : available_contiguous_data;
 
@@ -295,9 +334,9 @@ void forb::streams::shared_memory::recv(void *buffer, size_t size) {
         pthread_mutex_unlock(&_pointer->mutex);
 
         // Ok, I can read how_many_receiving_now data starting from start_index position
-        ::memcpy(buffer_ptr,
-                 _pointer->data + start_index,
-                 how_many_receiving_now);
+        my_memcpy(buffer_ptr,
+                  _pointer->data + start_index,
+                  how_many_receiving_now);
 
         remaining -= how_many_receiving_now;
         buffer_ptr += how_many_receiving_now;

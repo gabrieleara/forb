@@ -14,11 +14,8 @@ include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 11)
 
 # Flags change depending on DEBUG or RELEASE compilation
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra --pedantic -Werror")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -Wextra --pedantic -Werror")
 # set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-
-# TODO: remove this one
-# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3")
 
 ########################################################################################################################
 
