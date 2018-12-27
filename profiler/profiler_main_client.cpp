@@ -155,8 +155,6 @@ duration transfer_data(profiler_var &var, size_t i) {
     return time_elapsed;
 }
 
-// Online mean and variance algorithm, Knuth
-
 void test_size(profiler_var &var, size_t i, std::vector<duration> &samples) {
     // First transfer is discarded because we want to measure the system at "steady state"
     transfer_data(var, i);
@@ -202,7 +200,7 @@ void test_variable(profiler_var &var, std::string filename) {
 
         std::cout << std::endl;
 
-        print_vector(out, size, values);
+        print_vector(out, to_bytes(size), values);
     }
 
 }
@@ -258,7 +256,7 @@ int main(int argc, char *argv[]) {
     profiler = profiler::_assign(registry.get_force_socket("remote_profiler_single"));
     test_variable(profiler, filename);
 
-    for (i = 8-1; i >= 0; --i) {
+    for (int i = 8-1; i >= 0; --i) {
         size_t shmem_size = sizes[i];
         filename = "results/shmem_" + std::to_string(to_bytes(shmem_size) / 1024 / 1024) + "MB.dat";
         std::cout << "Testing WITH shared memory optimization using " << to_bytes(shmem_size) / 1024 / 1024

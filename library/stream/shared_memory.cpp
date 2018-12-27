@@ -45,25 +45,25 @@ struct forb::streams::shared_memory::shmem_data {
     condition_t non_full;
 
     /// Consuming pointer
-    volatile index_t rear;
+    index_t rear;
 
     /// Producing pointer
-    volatile index_t front;
+    index_t front;
 
     /// The dimension of the data buffer, since the structure will stretch
     /// automatically that attribute to fit the requested buffer size.
     size_t data_size;
 
     /// Counts the number of free spaces within the shared memory.
-    volatile size_t how_many_free;
+    size_t how_many_free;
 
     /// Counts the number of data spaces occupied within the shared memory.
     /// NOTICE: some spaces may be temporarily not free nor marked as data,
     /// while they are filled by the producer or emptied by the consumer.
-    volatile size_t how_many_data;
+    size_t how_many_data;
 
     /// Data buffer, to be expanded when shared memory is allocated
-    volatile unsigned char data[1]; // from C++98
+    unsigned char data[1]; // from C++98
     // volatile std::byte data[1]; // from C++17
 };
 
@@ -73,6 +73,7 @@ struct forb::streams::shared_memory::shmem_data {
 /// because the volatile attribute is dropped when the function is called,
 /// while this one keeps the volatile attributes of either dest or src.
 /// It may however not be as efficient as standard memcpy though.
+/*
 template<typename D, typename S>
 D *my_memcpy(D *dest, const S *src, size_t n) {
     using D_t = typename std::decay<D>::type;
@@ -92,7 +93,7 @@ D *my_memcpy(D *dest, const S *src, size_t n) {
 
     return dest_copy;
 }
-
+*/
 
 namespace forb {
     namespace streams {
@@ -272,9 +273,9 @@ void forb::streams::shared_memory::send(const void *buffer, size_t size) {
         pthread_mutex_unlock(&_pointer->mutex);
 
         // Ok, I can write how_many_sending_now data starting from start_index position
-        my_memcpy(_pointer->data + start_index,
-                  buffer_ptr,
-                  how_many_sending_now);
+        ::memcpy(_pointer->data + start_index,
+                 buffer_ptr,
+                 how_many_sending_now);
 
         remaining -= how_many_sending_now;
         buffer_ptr += how_many_sending_now;
@@ -334,9 +335,9 @@ void forb::streams::shared_memory::recv(void *buffer, size_t size) {
         pthread_mutex_unlock(&_pointer->mutex);
 
         // Ok, I can read how_many_receiving_now data starting from start_index position
-        my_memcpy(buffer_ptr,
-                  _pointer->data + start_index,
-                  how_many_receiving_now);
+        ::memcpy(buffer_ptr,
+                 _pointer->data + start_index,
+                 how_many_receiving_now);
 
         remaining -= how_many_receiving_now;
         buffer_ptr += how_many_receiving_now;
