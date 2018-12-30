@@ -51,11 +51,11 @@ MACRO(FORB_FILES_DECLARATION FORBFILES)
 
         # Convert
         ADD_CUSTOM_COMMAND(
-                OUTPUT ${FILE_PATH}/${FILE_WE}.cpp ${FILE_PATH}/${FILE_WE}.hpp # Remove ${FILE_PATH}/ for out-of-source compilation of cpp and hpp files
+                # OUTPUT ${FILE_WE}.cpp ${FILE_WE}.hpp # Remove ${FILE_PATH}/ for out-of-source compilation of cpp and hpp files
                 OUTPUT ${FILE_WE}.cpp ${FILE_WE}.hpp
                 COMMAND forbcc
                 ARGS ${FILE_IN}
-                WORKING_DIRECTORY ${FILE_PATH} # Remove this line for out-of-source compilation of cpp and hpp files
+                # WORKING_DIRECTORY ${FILE_PATH} # Remove this line for out-of-source compilation of cpp and hpp files
                 COMMENT "Generating ${FILE_WE}.cpp and ${FILE_WE}.hpp from ${FILE}"
                 DEPENDS forbcc ${FILE_IN}
         )
@@ -76,8 +76,8 @@ FORB_FILES_DECLARATION(profiler_class.forb)
 # and it will provide in output timing informations.
 
 # The generated header file will be in the binary directory (for out-of-source build)
-# include_directories(profiler_server PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-# include_directories(profiler_client PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(profiler_server PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(profiler_client PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # The server
 add_executable(profiler_server profiler_class.cpp profiler_main_server.cpp)
@@ -86,10 +86,3 @@ target_link_libraries(profiler_server PRIVATE forb)
 # The client
 add_executable(profiler_client profiler_class.cpp profiler_main_client.cpp)
 target_link_libraries(profiler_client PRIVATE forb)
-
-# The profiler program will spawn both the server and the client
-# add_executable(profiler profiler_main.cpp)
-# add_dependencies(profiler profiler_client profiler_server)
-
-message("CXX Flags DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
-message("CXX Flags RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")

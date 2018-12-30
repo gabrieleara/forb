@@ -1,4 +1,4 @@
-INPUT                   = compiler/ library/
+INPUT                   = compiler/ library/ profiler/
 RECURSIVE               = YES
 EXCLUDE                 = library/private/json.hpp
 ENABLE_PREPROCESSING    = YES

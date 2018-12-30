@@ -78,6 +78,7 @@ namespace forbcc {
         virtual void print_var_serialize(code_ostream &out, const std::string &var_name,
                                          const serialize &do_undo, bool force_stack) const;
 
+        /// Print the actions needed to either serialize or deserialize a variable of this type
         void print_var_serialize(code_ostream &out, const std::string &var_name, const serialize &do_undo) const {
             print_var_serialize(out, var_name, do_undo, true);
         }
