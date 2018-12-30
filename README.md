@@ -65,6 +65,10 @@ each folder.
 
 This will build also Doxygen documentation, see [Documentation](#documentation).
 
+### Building in Debug mode
+
+The previous command will build everything in Release mode, which doesn't have any relevant informations for debug purposes. To build it again using Debug mode, create a new `build` folder and use `cmake -DCMAKE_BUILD_TYPE=Debug ..` instead of previous `cmake ..` command. Debug mode won't generate Doxygen documentation, but it can still be accessed via the online documentation, see [Documentation](#documentation).
+
 ## Installation
 
 Once the project has been built using previous procedure it can be easily installed under the Linux host by
