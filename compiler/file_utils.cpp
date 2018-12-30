@@ -24,7 +24,7 @@ static std::string extract_name(const std::string &filename, F func) {
     std::string extracted_name;
     char        *buffer;
 
-    buffer = new char[filename.length()];
+    buffer = new char[filename.length()+1];
 
     std::strcpy(buffer, filename.c_str());
 
