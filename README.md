@@ -39,12 +39,12 @@ the FORB library RPC mechanism.
 - [library](library) &mdash; the FORB library itself, it contains all source code and headers needed to build and
 install the shared library under a Linux host. Public headers (which will be installed on the host include path)
 are within [library/include](library/include) subfolder.
-- [tests](tests) contains a few tests that can be used to understand and checkout the compiler/library combined
-functionality.
+- [profiler](profiler) contains a performance evaluation application that consists of a client-server application
+that measures round-trip-time on various data transfers.
 
 Other folders are:
-- [examples](examples) &mdash; contains a few examples of more structured FORB IDL files than the ones within
-[tests](tests) folder.
+- [examples](examples) &mdash; contains a few examples of FORB IDL files.
+- [evaluation](evaluation) &mdash; contains the results of two performance evaluations obtained on two different machines using the [profiler](profiler) application.
 - [docs](docs) &mdash; contains input Doxygen files, used either during CMake build or during automatic documentation
 generation (see [Documentation](#documentation)).
 
