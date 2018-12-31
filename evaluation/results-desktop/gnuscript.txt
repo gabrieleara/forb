@@ -1,0 +1,73 @@
+#set terminal png enhanced
+#set terminal postscript eps size 7,5 enhanced color \
+#    font 'Helvetica,20' linewidth 2
+set terminal epslatex
+
+#extension = ".png"
+#extension = ".eps"
+extension = ".tex"
+
+colors = "#9ccc65 #66bb6a #26a69a #26c6da #29b6f6 #42a5f5 #29b6f6 #1976d2 #303f9f"
+files = "socket shmem_4MB shmem_8MB shmem_16MB shmem_32MB shmem_64MB shmem_128MB shmem_256MB shmem_512MB"
+
+datasizes = "4MB 8MB 16MB 32MB 64MB 128MB 256MB 512MB"
+
+set ylabel "Time needed to transfer data [ms]"
+set xlabel "Dimension of the channel [MB - shared memory only]"
+
+set autoscale y
+
+set style fill solid 1 border -1
+set style boxplot outliers pointtype 7
+set style data boxplot
+
+set xtics ( "socket" 1, \
+            "4" 2,      \
+            "8" 3,      \
+            "16" 4,     \
+            "32" 5,     \
+            "64" 6,     \
+            "128" 7,    \
+            "256" 8,    \
+            "512" 9     \
+          ) scale 0.0
+
+unset key
+
+stats "socket.dat" using 2 nooutput
+
+set output word(datasizes,1).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 0 lt rgb word(colors, i)
+        
+set output word(datasizes,2).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 1 lt rgb word(colors, i)
+
+set output word(datasizes,3).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 2 lt rgb word(colors, i)
+
+
+set output word(datasizes,4).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 3 lt rgb word(colors, i)
+
+set output word(datasizes,5).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 4 lt rgb word(colors, i)
+
+
+set output word(datasizes,6).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 5 lt rgb word(colors, i)
+
+
+set output word(datasizes,7).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 6 lt rgb word(colors, i)
+
+
+set output word(datasizes,8).extension
+plot for [i=1:words(files)] \
+        word(files, i).'.dat' using (i):($2/1000):(0.3) index 7 lt rgb word(colors, i)

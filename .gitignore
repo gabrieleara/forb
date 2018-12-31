@@ -5,3 +5,6 @@ build*
 
 # Exclude IntelliJ CLion configuration directory
 .idea
+
+*.eps
+*.tex
