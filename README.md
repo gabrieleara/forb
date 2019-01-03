@@ -60,10 +60,21 @@ make all
 ```
 
 That's basically it, the build command will then generate a folder within `build` directory for each source folder
-(basically [compiler](compiler), [library](library) and [tests](tests)), each containing the targets associated with
-each folder.
+(basically [compiler](compiler), [library](library), [tests](tests) and [profiler](profiler)), each containing the targets associated with the corresponding source folder.
 
 This will build also Doxygen documentation, see [Documentation](#documentation).
+
+### Executing a target
+
+To execute a compiled target, simply move to the corresponding folder in `build` subtree and execute it.
+
+For example, to start the profiler application that has been used in [project-report.pdf] to evaluate framework performances, move to
+`build/profiler` folder and execute
+```bash
+./profiler_server &
+./profiler_client ../../profiler/rpc_db.json
+```
+Results will be written to `build/profiler/results` folder, similarly as they are in subfolders of [evaluation](evaluation) folder.
 
 ### Building in Debug mode
 
